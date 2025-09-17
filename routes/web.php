@@ -1,23 +1,26 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProductController;
 
-Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'login'])->name('login.post');
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::get('/', function () {
+    return redirect()->route('dashboard');
+});
 
-Route::get('/lang/{locale}', function ($locale) {
-    session(['app_locale' => in_array($locale, ['en','id']) ? $locale : 'en']);
-    return back();
-})->name('lang.switch');
+Route::prefix('app')->group(function () {
+    Route::get('/dashboard', function () {
+        return view('dashboard.index');
+    })->name('dashboard');
 
-Route::middleware(['auth','lang'])->group(function () {
-    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
+    Route::post('/products', [ProductController::class, 'store'])->name('products.store');
 
-    // placeholder menu POS
-    Route::view('pos', 'pos.index')->name('pos.index');
+    // Purchases & Transfers placeholders
+    Route::get('/purchases', function () {
+        return view('purchases.index');
+    })->name('purchases.index');
 
-    // nanti: resource routes modul Products/Warehouse/Adjustments/Purchases/Transfers/Reports
+    Route::get('/transfers', function () {
+        return view('transfers.index');
+    })->name('transfers.index');
 });
