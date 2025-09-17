@@ -7,9 +7,26 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
+    /**
+     * Display all products.
+     */
+    public function index(): View
+    {
+        $products = DB::table('products as p')
+            ->leftJoin('brands as b','b.id','=','p.brand_id')
+            ->leftJoin('units as u','u.id','=','p.unit_id')
+            ->leftJoin('product_warehouse as pw','pw.product_id','=','p.id')
+            ->selectRaw('p.id, p.code, p.name, p.type, p.image, IFNULL(b.name, "N/D") as brand, IFNULL(u.ShortName, "Unt") as unit, SUM(IFNULL(pw.qte,0)) as qty')
+            ->groupBy('p.id')
+            ->orderByDesc('p.id')
+            ->paginate(10);
+
+        return view('products.index', compact('products'));
+    }
     /**
      * Show the create product form.
      */
@@ -39,8 +56,8 @@ class ProductController extends Controller
             'project_id' => ['nullable'],
             'tags' => ['nullable', 'array'],
             'tags.*' => ['integer'],
-            'type' => ['required', 'in:standard,service'],
-            'product_unit_id' => ['required'],
+            'type' => ['required', 'in:is_single,is_service,is_variant,standard,service'],
+            'product_unit_id' => ['nullable'],
             'stock_alert' => ['nullable', 'integer', 'min:0'],
             'images' => ['nullable', 'array'],
             'images.*' => ['file', 'image', 'mimes:jpeg,jpg,png,webp', 'max:5120'],
@@ -64,11 +81,73 @@ class ProductController extends Controller
             }
         }
 
-        // Normally you'd create a Product model and persist $validated + $storedImagePaths.
-        // For now, just flash success so the form round-trip works.
-        return redirect()
-            ->route('products.create')
-            ->with('status', 'Product submitted successfully!');
+        // Persist minimal fields to products
+        DB::table('products')->insert([
+            'type' => $validated['type'],
+            'code' => $validated['code'],
+            'Type_barcode' => strtoupper($request->input('barcode_symbology','CODE128')),
+            'name' => $validated['name'],
+            'category_id' => (int) $validated['category_id'],
+            'brand_id' => $request->input('brand_id'),
+            'unit_id' => $request->input('product_unit_id'),
+            'image' => $storedImagePaths ? implode(',', $storedImagePaths) : 'no-image.png',
+            'stock_alert' => (int) ($request->input('stock_alert', 0)),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return redirect()->route('products.index')->with('ok', 'Product created');
+    }
+
+    /** Show a product */
+    public function show(int $id): View
+    {
+        $product = DB::table('products')->where('id',$id)->first();
+        abort_if(!$product, 404);
+        return view('products.show', compact('product'));
+    }
+
+    /** Edit form */
+    public function edit(int $id): View
+    {
+        $product = DB::table('products')->where('id',$id)->first();
+        abort_if(!$product, 404);
+        $categories = DB::table('categories')->get();
+        $brands = DB::table('brands')->get();
+        $units = DB::table('units')->get();
+        return view('products.edit', compact('product','categories','brands','units'));
+    }
+
+    /** Update */
+    public function update(int $id, Request $request): RedirectResponse
+    {
+        $request->validate([
+            'name' => ['required','string','max:255'],
+            'code' => ['required','string','max:255'],
+            'type' => ['required','in:is_single,is_service,is_variant,standard,service'],
+            'category_id' => ['required'],
+            'brand_id' => ['nullable'],
+            'unit_id' => ['nullable'],
+        ]);
+
+        DB::table('products')->where('id',$id)->update([
+            'name' => $request->name,
+            'code' => $request->code,
+            'type' => $request->type,
+            'category_id' => (int) $request->category_id,
+            'brand_id' => $request->brand_id,
+            'unit_id' => $request->unit_id,
+            'updated_at' => now(),
+        ]);
+
+        return redirect()->route('products.index')->with('ok','Product updated');
+    }
+
+    /** Delete */
+    public function destroy(int $id): RedirectResponse
+    {
+        DB::table('products')->where('id',$id)->delete();
+        return redirect()->route('products.index')->with('ok','Product deleted');
     }
 }
 

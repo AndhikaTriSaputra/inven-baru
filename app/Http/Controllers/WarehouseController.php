@@ -2,64 +2,90 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Warehouse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class WarehouseController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $warehouses = DB::table('warehouses')
+            ->select('id','name','mobile as phone','country','city','email','zip')
+            ->whereNull('deleted_at')
+            ->orderBy('name')
+            ->paginate(10);
+
+        return view('warehouses.index', compact('warehouses'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        // daftar parent (opsional): untuk membuat hierarki WO08 > RAK3 > ...
+        $parents = DB::table('warehouses')->select('id','name')->orderBy('name')->get();
+
+        return view('warehouses.create', compact('parents'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $data = $request->validate([
+            'name'      => 'required|string|max:255',
+            'mobile'    => 'nullable|string|max:50',
+            'email'     => 'nullable|email|max:255',
+            'country'   => 'nullable|string|max:100',
+            'city'      => 'nullable|string|max:100',
+            'zip'       => 'nullable|string|max:20',
+            'parent_id' => 'nullable|integer|exists:warehouses,id',
+        ]);
+
+        $data['created_at'] = now();
+        $data['updated_at'] = now();
+
+        DB::table('warehouses')->insert($data);
+
+        return redirect()->route('warehouses.index')->with('ok','Warehouse created.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Warehouse $warehouse)
+    public function edit($id)
     {
-        //
+        $warehouse = DB::table('warehouses')->where('id',$id)->first();
+        abort_unless($warehouse, 404);
+
+        $parents = DB::table('warehouses')->select('id','name')->orderBy('name')->get();
+
+        return view('warehouses.edit', compact('warehouse','parents'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Warehouse $warehouse)
+    public function update(Request $request, $id)
     {
-        //
+        $warehouse = DB::table('warehouses')->where('id',$id)->first();
+        abort_unless($warehouse, 404);
+
+        $data = $request->validate([
+            'name'      => 'required|string|max:255',
+            'mobile'    => 'nullable|string|max:50',
+            'email'     => 'nullable|email|max:255',
+            'country'   => 'nullable|string|max:100',
+            'city'      => 'nullable|string|max:100',
+            'zip'       => 'nullable|string|max:20',
+            'parent_id' => 'nullable|integer|exists:warehouses,id',
+        ]);
+
+        $data['updated_at'] = now();
+
+        DB::table('warehouses')->where('id',$id)->update($data);
+
+        return redirect()->route('warehouses.index')->with('ok','Warehouse updated.');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Warehouse $warehouse)
+    public function destroy($id)
     {
-        //
-    }
+        // Soft delete to avoid foreign key constraint failures
+        DB::table('warehouses')->where('id',$id)->update([
+            'deleted_at' => now(),
+            'updated_at' => now(),
+        ]);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Warehouse $warehouse)
-    {
-        //
+        return redirect()->route('warehouses.index')->with('ok','Warehouse deleted.');
     }
 }
