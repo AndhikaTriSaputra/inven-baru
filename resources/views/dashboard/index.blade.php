@@ -1,26 +1,11 @@
 @extends('layouts.app')
 
 @section('header')
-<div class="flex items-center justify-between w-full">
-    <h1 class="text-xl font-semibold text-gray-800">Dashboard</h1>
-    <div class="flex items-center space-x-4">
-        <button class="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors">POS</button>
-        <button class="p-2 text-gray-600 hover:text-gray-800">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-        </button>
-        <button class="p-2 text-gray-600 hover:text-gray-800">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/></svg>
-        </button>
-        <div class="relative">
-            <button class="p-2 text-gray-600 hover:text-gray-800">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4.828 7l2.586 2.586a2 2 0 002.828 0L12.828 7H4.828z"/></svg>
-            </button>
-            <span class="absolute -top-1 -right-1 bg-violet-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">1</span>
-        </div>
-        <div class="w-8 h-8 bg-gray-300 rounded-full"></div>
-    </div>
-    
-</div>
+@include('components.header')
+@endsection
+
+@section('page-title')
+Dashboard
 @endsection
 
 @section('content')
@@ -179,6 +164,7 @@
         },
         options: {responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, max:1, ticks:{stepSize:0.2}}}}
     });
+
 </script>
 @endsection
 

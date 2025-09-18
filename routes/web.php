@@ -31,6 +31,21 @@ Route::middleware('auth')->prefix('app')->group(function () {
     // dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    // pos
+    Route::get('/pos', function () {
+        return view('pos.index');
+    })->name('pos.index');
+
+    // profile
+    Route::get('/profile', function () {
+        return view('profile.index');
+    })->name('profile.index');
+
+    // settings
+    Route::get('/settings', function () {
+        return view('settings.index');
+    })->name('settings.index');
+
     // products
     Route::resource('products', ProductController::class);
     Route::get('/products/{product}/barcode', [ProductController::class, 'barcode'])->name('products.barcode');
@@ -45,8 +60,10 @@ Route::middleware('auth')->prefix('app')->group(function () {
     Route::get('/purchases/{purchase}/invoice', [PurchaseController::class, 'invoice'])->name('purchases.invoice');
 
     // adjustments
-    Route::resource('adjustments', AdjustmentController::class);
+    // NOTE: define specific routes BEFORE resource to avoid conflicts like 'product-search' matching {adjustment}
     Route::get('/adjustments/product-search', [AdjustmentController::class, 'productSearch'])->name('adjustments.productSearch');
+    Route::get('/adjustments/product-stock', [AdjustmentController::class, 'productStock'])->name('adjustments.productStock');
+    Route::resource('adjustments', AdjustmentController::class);
 
 
 

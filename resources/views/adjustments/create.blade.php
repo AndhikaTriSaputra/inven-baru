@@ -28,11 +28,11 @@ Create Adjustment
         <div>
             <label class="block text-sm text-gray-600 mb-1">Product</label>
             <div class="relative">
-              <input x-model="query" @focus="open=true; if(results.length===0) preload();" @input="search" type="text" placeholder="Scan/Search Product by Code Or Name" class="w-full border rounded px-3 py-2 pl-10">
+              <input x-model="query" @focus="open=true; if(results.length===0) preload();" @input="search" @keydown.enter.prevent="if(results.length){ add(results[0]) }" type="text" placeholder="Scan/Search Product by Code Or Name" class="w-full border rounded px-3 py-2 pl-10">
               <svg class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-4.35-4.35M10 18a8 8 0 100-16 8 8 0 000 16z"/></svg>
               <div x-show="open" @click.outside="open=false" class="absolute z-50 left-0 right-0 bg-white border rounded-lg mt-1 shadow-lg max-h-64 overflow-y-auto overflow-x-hidden whitespace-nowrap">
                 <template x-for="item in results" :key="item.id">
-                  <button type="button" class="w-full flex items-center gap-3 px-3 py-2 hover:bg-slate-50 text-left">
+                  <button type="button" class="w-full flex items-center gap-3 px-3 py-2 hover:bg-slate-50 text-left" @click="add(item)">
                     <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-4.35-4.35M10 18a8 8 0 100-16 8 8 0 000 16z"/></svg>
                     <span class="truncate" x-text="item.label"></span>
                   </button>

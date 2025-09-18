@@ -1,6 +1,10 @@
 @extends('layouts.app')
 
 @section('header')
+@include('components.header')
+@endsection
+
+@section('page-title')
 All Products
 @endsection
 

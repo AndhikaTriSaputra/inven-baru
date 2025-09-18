@@ -80,12 +80,16 @@ class WarehouseController extends Controller
 
     public function destroy($id)
     {
-        // Soft delete to avoid foreign key constraint failures
-        DB::table('warehouses')->where('id',$id)->update([
-            'deleted_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        return redirect()->route('warehouses.index')->with('ok','Warehouse deleted.');
+        try {
+            DB::table('warehouses')->where('id',$id)->delete();
+            return redirect()->route('warehouses.index')->with('ok','Warehouse permanently deleted.');
+        } catch (\Throwable $e) {
+            // Fallback to soft delete if there are FK constraints
+            DB::table('warehouses')->where('id',$id)->update([
+                'deleted_at' => now(),
+                'updated_at' => now(),
+            ]);
+            return redirect()->route('warehouses.index')->with('ok','Warehouse archived (in use by other records).');
+        }
     }
 }
