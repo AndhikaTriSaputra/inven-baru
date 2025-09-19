@@ -124,7 +124,7 @@ All Adjustments
                   </div>
                   <div>
                       <div class="text-xs text-slate-500">Warehouse</div>
-                      <div class="mt-1 font-medium">{{ optional(app(\App\Http\Controllers\AdjustmentController::class))->warehousePaths([$detailHeader->warehouse_id])[$detailHeader->warehouse_id] ?? '—' }}</div>
+                      <div class="mt-1 font-medium">{{ $detailWarehousePath ?? '—' }}</div>
                   </div>
               </div>
               <div class="overflow-x-auto border border-gray-200 rounded-lg">

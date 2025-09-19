@@ -71,51 +71,33 @@ class AdjustmentController extends Controller
 
         $warehouseOptions = $this->warehouseOptions();
 
-        return view('adjustments.index', compact('adjustments','warehouseOptions'));
+        // Inline detail modal data (when coming from Show)
+        $detailHeader = null; $detailItems = collect(); $detailWarehousePath = null;
+        if ($request->filled('detail')) {
+            $detailId = (int)$request->get('detail');
+            $detailHeader = DB::table('adjustments')->where('id', $detailId)->first();
+            if ($detailHeader) {
+                [$detailTable, $qtyCol] = $this->resolveAdjustmentDetailTable();
+                $hasWarehouseCol = Schema::hasColumn($detailTable, 'warehouse_id');
+                $q = DB::table("$detailTable as ap")->join('products as p','p.id','=','ap.product_id');
+                if ($hasWarehouseCol) { $q->leftJoin('warehouses as w','w.id','=','ap.warehouse_id'); }
+                $selects = ['ap.id', DB::raw("ap.$qtyCol as qty"),'ap.type','p.code','p.name'];
+                if ($hasWarehouseCol) { $selects[]='ap.warehouse_id'; $selects[] = DB::raw('w.name as warehouse_name'); }
+                $detailItems = $q->select($selects)->where('ap.adjustment_id',$detailId)->orderBy('ap.id')->get();
+                // compute warehouse path for header
+                $paths = $this->warehousePaths([$detailHeader->warehouse_id]);
+                $detailWarehousePath = $paths[$detailHeader->warehouse_id] ?? '—';
+            }
+        }
+
+        return view('adjustments.index', compact('adjustments','warehouseOptions','detailHeader','detailItems','detailWarehousePath'));
     }
 
     /** Detail (read only) */
     public function show(int $id)
     {
-        $header = DB::table('adjustments')->where('id', $id)->first();
-        abort_if(!$header, 404);
-        // resolve detail table and qty column
-        [$detailTable, $qtyCol] = $this->resolveAdjustmentDetailTable();
-        $hasWarehouseCol = Schema::hasColumn($detailTable, 'warehouse_id');
-
-        $query = DB::table("$detailTable as ap")
-            ->join('products as p', 'p.id', '=', 'ap.product_id');
-        if ($hasWarehouseCol) {
-            $query->leftJoin('warehouses as w', 'w.id', '=', 'ap.warehouse_id');
-        }
-
-        $selects = [
-            'ap.id', DB::raw("ap.$qtyCol as qty"),'ap.type',
-            'p.id as product_id','p.code','p.name',
-        ];
-        if ($hasWarehouseCol) {
-            $selects[] = 'ap.warehouse_id';
-            $selects[] = DB::raw('w.name as warehouse_name');
-        } else {
-            $selects[] = DB::raw(((int)$header->warehouse_id).' as warehouse_id');
-        }
-
-        $items = $query->select($selects)
-            ->where('ap.adjustment_id', $id)
-            ->orderBy('ap.id')
-            ->get();
-
-        // build full path gudang WO08 > RAK3 > A
-        $idToPath = $this->warehousePaths(
-            $hasWarehouseCol
-                ? $items->pluck('warehouse_id')->filter()->unique()->values()
-                : collect([$header->warehouse_id])
-        );
-        foreach ($items as $it) {
-            $it->warehouse_path = $idToPath[$it->warehouse_id] ?? '—';
-        }
-
-        return view('adjustments.show', compact('header','items'));
+        // Keep background as All Adjustments list, open modal inline
+        return redirect()->route('adjustments.index', ['detail' => $id]);
     }
 
     /** Form edit */

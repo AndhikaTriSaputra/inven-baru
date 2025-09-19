@@ -9,6 +9,8 @@ use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\AdjustmentController;
 use App\Http\Controllers\TransferController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\UnitController;
 
 // kalau akses root, redirect ke dashboard
 Route::get('/', function () {
@@ -48,6 +50,13 @@ Route::middleware('auth')->prefix('app')->group(function () {
 
     // products
     Route::resource('products', ProductController::class);
+    // brands
+    Route::resource('brands', BrandController::class);
+    Route::get('/products/export/pdf', [ProductController::class, 'exportPdf'])->name('products.export.pdf');
+    Route::get('/products/export/excel', [ProductController::class, 'exportExcel'])->name('products.export.excel');
+    Route::get('/products/search', [ProductController::class, 'search'])->name('products.search');
+    Route::post('/products/approve', [ProductController::class, 'approve'])->name('products.approve');
+    Route::post('/products/import', [ProductController::class, 'import'])->name('products.import');
     Route::get('/products/{product}/barcode', [ProductController::class, 'barcode'])->name('products.barcode');
     Route::get('/products/{product}/labels', [ProductController::class, 'labels'])->name('products.labels');
 
@@ -58,6 +67,21 @@ Route::middleware('auth')->prefix('app')->group(function () {
     // purchases
     Route::resource('purchases', PurchaseController::class);
     Route::get('/purchases/{purchase}/invoice', [PurchaseController::class, 'invoice'])->name('purchases.invoice');
+    Route::get('/purchases/{purchase}/print', [PurchaseController::class, 'print'])->name('purchases.print');
+    
+    // categories
+    Route::resource('categories', CategoryController::class);
+    // units
+    Route::resource('units', UnitController::class);
+    
+    // reports
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/purchases', [ReportController::class, 'purchases'])->name('reports.purchases');
+    Route::get('/reports/stock', [ReportController::class, 'stock'])->name('reports.stock');
+    Route::get('/reports/adjustments', [ReportController::class, 'adjustments'])->name('reports.adjustments');
+    Route::get('/reports/warehouse', [ReportController::class, 'warehouse'])->name('reports.warehouse');
+    Route::get('/reports/export/purchases', [ReportController::class, 'exportPurchases'])->name('reports.exportPurchases');
+    Route::get('/reports/export/stock', [ReportController::class, 'exportStock'])->name('reports.exportStock');
 
     // adjustments
     // NOTE: define specific routes BEFORE resource to avoid conflicts like 'product-search' matching {adjustment}
@@ -70,12 +94,4 @@ Route::middleware('auth')->prefix('app')->group(function () {
     // transfers
     Route::resource('transfers', TransferController::class);
 
-    // reports
-    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
-    Route::get('/reports/purchases', [ReportController::class, 'purchases'])->name('reports.purchases');
-    Route::get('/reports/stock', [ReportController::class, 'stock'])->name('reports.stock');
-    Route::get('/reports/adjustments', [ReportController::class, 'adjustments'])->name('reports.adjustments');
-    Route::get('/reports/warehouse', [ReportController::class, 'warehouse'])->name('reports.warehouse');
-    Route::get('/reports/export/purchases', [ReportController::class, 'exportPurchases'])->name('reports.exportPurchases');
-    Route::get('/reports/export/stock', [ReportController::class, 'exportStock'])->name('reports.exportStock');
 });

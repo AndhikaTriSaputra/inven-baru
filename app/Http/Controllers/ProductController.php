@@ -8,6 +8,8 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Illuminate\Http\Response;
 
 class ProductController extends Controller
 {
@@ -32,12 +34,11 @@ class ProductController extends Controller
      */
     public function create(): View
     {
-        // In a real app, fetch from database. For now, pass empty arrays or examples.
-        $categories = collect();
-        $brands = collect();
-        $projects = collect();
-        $units = collect();
-        $tags = collect();
+        $categories = DB::table('categories')->select('id','name','code')->orderBy('name')->get()->map(function($r){ return ['id'=>$r->id,'name'=>$r->name,'code'=>$r->code]; })->toArray();
+        $brands = DB::table('brands')->select('id','name')->orderBy('name')->get()->map(function($r){ return ['id'=>$r->id,'name'=>$r->name]; })->toArray();
+        $units = DB::table('units')->select('id','name')->orderBy('name')->get()->map(function($r){ return ['id'=>$r->id,'name'=>$r->name]; })->toArray();
+        $projects = [];
+        $tags = [];
 
         return view('products.create', compact('categories', 'brands', 'projects', 'units', 'tags'));
     }
@@ -85,7 +86,7 @@ class ProductController extends Controller
         DB::table('products')->insert([
             'type' => $validated['type'],
             'code' => $validated['code'],
-            'Type_barcode' => strtoupper($request->input('barcode_symbology','CODE128')),
+            'type_barcode' => strtoupper($request->input('barcode_symbology','CODE128')),
             'name' => $validated['name'],
             'category_id' => (int) $validated['category_id'],
             'brand_id' => $request->input('brand_id'),
@@ -148,6 +149,66 @@ class ProductController extends Controller
     {
         DB::table('products')->where('id',$id)->delete();
         return redirect()->route('products.index')->with('ok','Product deleted');
+    }
+
+    /**
+     * Export products to PDF (placeholder implementation)
+     */
+    public function exportPdf(): RedirectResponse
+    {
+        return redirect()->route('products.index')->with('info', 'Export PDF not configured in this demo.');
+    }
+
+    /**
+     * Export products to Excel (placeholder implementation)
+     */
+    public function exportExcel(): RedirectResponse
+    {
+        return redirect()->route('products.index')->with('info', 'Export Excel not configured in this demo.');
+    }
+
+    /**
+     * Lightweight search endpoint used by the index page JS
+     */
+    public function search(Request $request): JsonResponse
+    {
+        $q = trim((string) $request->get('q', ''));
+        if ($q === '') {
+            return response()->json(['products' => []]);
+        }
+
+        $products = DB::table('products as p')
+            ->leftJoin('brands as b','b.id','=','p.brand_id')
+            ->leftJoin('units as u','u.id','=','p.unit_id')
+            ->leftJoin('product_warehouse as pw','pw.product_id','=','p.id')
+            ->selectRaw('p.id, p.code, p.name, p.type, IFNULL(b.name, "N/D") as brand, IFNULL(u.ShortName, "Unt") as unit, SUM(IFNULL(pw.qte,0)) as quantity')
+            ->where(function($w) use ($q) {
+                $w->where('p.name', 'like', "%$q%")
+                  ->orWhere('p.code', 'like', "%$q%")
+                  ->orWhere('b.name', 'like', "%$q%");
+            })
+            ->groupBy('p.id')
+            ->limit(20)
+            ->get();
+
+        return response()->json(['products' => $products]);
+    }
+
+    /**
+     * Approve selected products (demo: no-op)
+     */
+    public function approve(Request $request): JsonResponse
+    {
+        $ids = (array) $request->input('product_ids', []);
+        return response()->json(['approved' => array_values($ids)]);
+    }
+
+    /**
+     * Import products from CSV (demo: no-op)
+     */
+    public function import(Request $request): JsonResponse
+    {
+        return response()->json(['status' => 'ok']);
     }
 }
 
