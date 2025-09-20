@@ -3,6 +3,7 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="csrf-token" content="{{ csrf_token() }}">
         <title>POS Inventory</title>
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
@@ -304,6 +305,14 @@
                 <a href="{{ url('/app/products') }}" class="flex items-center gap-3 text-gray-700 hover:text-violet-600">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6M9 16h6M6 5h7l5 5v9H6z"/></svg>
                     <span class="text-base">All Products</span>
+                </a>
+                <a href="{{ url('/app/products/labels') }}" class="flex items-center gap-3 text-gray-700 hover:text-violet-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 21v-4a2 2 0 012-2h4a2 2 0 012 2v4"/></svg>
+                    <span class="text-base">Print Labels</span>
+                </a>
+                <a href="{{ url('/app/products/stock-count') }}" class="flex items-center gap-3 text-gray-700 hover:text-violet-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span class="text-base">Count Stock</span>
                 </a>
                 <a href="{{ url('/app/categories') }}" class="flex items-center gap-3 text-gray-700 hover:text-violet-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h10M4 18h8"/></svg><span class="text-base">Category</span></a>
                 <a href="{{ url('/app/brands') }}" class="flex items-center gap-3 text-gray-700 hover:text-violet-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6l7 6-7 6-7-6z"/></svg><span class="text-base">Brand</span></a>

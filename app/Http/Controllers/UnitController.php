@@ -30,18 +30,24 @@ class UnitController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request)
     {
         $validated = $request->validate([
             'name' => ['required','string','max:255'],
-            'ShortName' => ['nullable','string','max:50'],
+            'short_name' => ['nullable','string','max:50'],
         ]);
-        DB::table('units')->insert([
+        
+        $id = DB::table('units')->insertGetId([
             'name' => $validated['name'],
-            'ShortName' => $validated['ShortName'] ?? null,
+            'ShortName' => $validated['short_name'] ?? null,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+
+        if ($request->wantsJson()) {
+            return response()->json(['unit' => ['id' => $id, 'name' => $validated['name'], 'short_name' => $validated['short_name'] ?? null]]);
+        }
+
         return redirect()->route('units.index')->with('ok','Unit created');
     }
 
@@ -64,26 +70,37 @@ class UnitController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Unit $unit): RedirectResponse
+    public function update(Request $request, Unit $unit)
     {
         $validated = $request->validate([
             'name' => ['required','string','max:255'],
-            'ShortName' => ['nullable','string','max:50'],
+            'short_name' => ['nullable','string','max:50'],
         ]);
+        
         DB::table('units')->where('id',$unit->id)->update([
             'name' => $validated['name'],
-            'ShortName' => $validated['ShortName'] ?? null,
+            'ShortName' => $validated['short_name'] ?? null,
             'updated_at' => now(),
         ]);
+
+        if ($request->wantsJson()) {
+            return response()->json(['unit' => ['id' => $unit->id, 'name' => $validated['name'], 'short_name' => $validated['short_name'] ?? null]]);
+        }
+
         return redirect()->route('units.index')->with('ok','Unit updated');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Unit $unit): RedirectResponse
+    public function destroy(Request $request, Unit $unit)
     {
         DB::table('units')->where('id',$unit->id)->delete();
+        
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Unit deleted']);
+        }
+        
         return redirect()->route('units.index')->with('ok','Unit deleted');
     }
 }

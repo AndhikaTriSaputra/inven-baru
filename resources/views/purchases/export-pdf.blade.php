@@ -1,3 +1,5 @@
+export-pdf.blade.php
+
 @php
     $supplier = DB::table('providers')->where('id',$purchase->provider_id)->first();
     $warehouse = DB::table('warehouses')->where('id',$purchase->warehouse_id)->first();

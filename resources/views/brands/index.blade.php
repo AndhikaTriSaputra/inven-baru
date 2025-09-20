@@ -59,7 +59,7 @@
                 <h3 class="text-lg font-semibold text-gray-800">Create Brand</h3>
                 <button id="closeBrandModal" class="text-gray-500 hover:text-gray-700">✕</button>
             </div>
-            <form id="brandCreateForm" method="POST" action="{{ route('products.brands.store') }}" enctype="multipart/form-data">
+            <form id="brandCreateForm" method="POST" action="{{ route('brands.store') }}" enctype="multipart/form-data">
                 @csrf
                 <div class="space-y-4">
                     <div>
@@ -86,6 +86,49 @@
         </div>
     </div>
   </div>
+
+<!-- Edit Modal -->
+<div id="editBrandModal" class="hidden fixed inset-0 z-50">
+    <div class="absolute inset-0 bg-black/40"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+        <div class="w-full max-w-lg bg-white rounded-2xl shadow-xl border border-gray-100">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <h3 class="text-lg font-semibold">Edit</h3>
+                <button id="closeEditBrandModal" class="text-gray-500 hover:text-gray-700">✕</button>
+            </div>
+            <form id="editBrandForm" method="POST" enctype="multipart/form-data" class="p-6">
+                @csrf
+                @method('PUT')
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">Brand Name *</label>
+                        <input type="text" id="editBrandName" name="name" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-violet-500 focus:ring-1 focus:ring-violet-100" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">Brand Description</label>
+                        <textarea id="editBrandDescription" name="description" rows="3" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-violet-500 focus:ring-1 focus:ring-violet-100"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">Brand Image</label>
+                        <input id="editBrandImage" name="image" type="file" accept="image/*" class="w-full text-sm">
+                        <div class="mt-2">
+                            <img id="editBrandImagePreview" src="" alt="preview" class="hidden w-20 h-20 rounded object-cover border">
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 flex items-center justify-end space-x-3">
+                    <button type="button" id="cancelEditBrandModal" class="px-4 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-50">Cancel</button>
+                    <button type="submit" class="px-4 py-2 rounded-full bg-violet-600 text-white hover:bg-violet-500 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Submit
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 @push('scripts')
 <script>
@@ -144,7 +187,18 @@
                     <td class="py-3 px-4">${r.image ? `<img src="${r.image}" alt="brand" class="w-10 h-10 rounded object-cover">` : `<div class=\"w-10 h-10 rounded bg-gray-100 border border-dashed flex items-center justify-center text-gray-400\">\uD83D\uDDBC\uFE0F</div>`}</td>
                     <td class="py-3 px-4 text-gray-700">${r.name}</td>
                     <td class="py-3 px-4 text-gray-700">${r.description}</td>
-                    <td class="py-3 px-4"><a href="/products/brands/${r.id}/edit" class="text-emerald-600 hover:text-emerald-500">Edit</a></td>
+                    <td class="py-3 px-4">
+                        <button data-action="edit" data-id="${r.id}" data-name="${r.name}" data-description="${r.description}" data-image="${r.image || ''}" class="text-emerald-600 hover:text-emerald-500 mr-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </svg>
+                        </button>
+                        <button data-action="delete" data-id="${r.id}" class="text-red-600 hover:text-red-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </button>
+                    </td>
                 `;
                 tbody.appendChild(tr);
             }
@@ -170,18 +224,43 @@
 
         // Modal logic
         const modal = document.getElementById('brandModal');
+        const editModal = document.getElementById('editBrandModal');
         const openBtn = document.getElementById('openBrandModal');
         const closeBtn = document.getElementById('closeBrandModal');
         const cancelBtn = document.getElementById('cancelBrandModal');
+        
+        // Edit modal elements
+        const closeEditBtn = document.getElementById('closeEditBrandModal');
+        const cancelEditBtn = document.getElementById('cancelEditBrandModal');
         const form = document.getElementById('brandCreateForm');
 
         function open(){ modal.classList.remove('hidden'); }
         function close(){ modal.classList.add('hidden'); form.reset(); preview.classList.add('hidden'); preview.src=''; }
+        function openEdit(id, name, description, image){
+            document.getElementById('editBrandName').value = name;
+            document.getElementById('editBrandDescription').value = description || '';
+            document.getElementById('editBrandForm').action = `/app/brands/${id}`;
+            if(image) {
+                document.getElementById('editBrandImagePreview').src = image;
+                document.getElementById('editBrandImagePreview').classList.remove('hidden');
+            } else {
+                document.getElementById('editBrandImagePreview').classList.add('hidden');
+            }
+            editModal.classList.remove('hidden');
+        }
+        function closeEdit(){ editModal.classList.add('hidden'); }
+        
         openBtn.addEventListener('click', open);
         closeBtn.addEventListener('click', close);
         cancelBtn.addEventListener('click', close);
+        closeEditBtn.addEventListener('click', closeEdit);
+        cancelEditBtn.addEventListener('click', closeEdit);
         modal.addEventListener('click', (e)=>{ if(e.target===modal){ close(); }});
-        document.addEventListener('keydown', (e)=>{ if(!modal.classList.contains('hidden') && e.key==='Escape'){ close(); }});
+        editModal.addEventListener('click', (e)=>{ if(e.target===editModal){ closeEdit(); }});
+        document.addEventListener('keydown', (e)=>{ 
+            if(!modal.classList.contains('hidden') && e.key==='Escape'){ close(); }
+            if(!editModal.classList.contains('hidden') && e.key==='Escape'){ closeEdit(); }
+        });
 
         form.addEventListener('submit', async (e)=>{
             e.preventDefault();
@@ -216,6 +295,96 @@
             reader.onload = ()=>{ preview.src = reader.result; preview.classList.remove('hidden'); };
             reader.readAsDataURL(file);
         });
+        
+        // Edit image preview
+        const editInputImage = document.getElementById('editBrandImage');
+        const editPreview = document.getElementById('editBrandImagePreview');
+        editInputImage.addEventListener('change', ()=>{
+            const file = editInputImage.files && editInputImage.files[0];
+            if(!file){ return; }
+            const reader = new FileReader();
+            reader.onload = ()=>{ editPreview.src = reader.result; editPreview.classList.remove('hidden'); };
+            reader.readAsDataURL(file);
+        });
+        
+        // Delete function
+        function deleteBrand(id) {
+            if (!confirm('Are you sure you want to delete this brand?')) return;
+            fetch(`/app/brands/${id}`, {
+                method: 'DELETE',
+                headers: { 
+                    'Accept': 'application/json', 
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                credentials: 'same-origin'
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('Request failed');
+                // remove from local table data and re-render
+                const index = data.findIndex(d => d.id == id);
+                if (index !== -1) {
+                    data.splice(index, 1);
+                }
+                render();
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Failed to delete brand');
+            });
+        }
+        
+        // Make functions globally accessible
+        window.openEdit = openEdit;
+        window.closeEdit = closeEdit;
+        window.deleteBrand = deleteBrand;
+        
+        // Event delegation for action buttons
+        tbody.addEventListener('click', function(e) {
+            const button = e.target.closest('button[data-action]');
+            if (!button) return;
+            
+            const action = button.getAttribute('data-action');
+            const id = button.getAttribute('data-id');
+            
+            if (action === 'edit') {
+                const name = button.getAttribute('data-name');
+                const description = button.getAttribute('data-description');
+                const image = button.getAttribute('data-image');
+                openEdit(id, name, description, image);
+            } else if (action === 'delete') {
+                deleteBrand(id);
+            }
+        });
+        
+        // Edit form submission
+        const editForm = document.getElementById('editBrandForm');
+        if (editForm) {
+            editForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(editForm);
+                try {
+                    const res = await fetch(editForm.action, {
+                        method: 'POST',
+                        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': editForm.querySelector('input[name="_token"]').value },
+                        credentials: 'same-origin',
+                        body: formData
+                    });
+                    if (!res.ok) throw new Error('Request failed');
+                    const json = await res.json();
+                    const updated = json.brand || {};
+                    // update local table data and re-render
+                    const index = data.findIndex(d => d.id == updated.id);
+                    if (index !== -1) {
+                        data[index] = { id: updated.id, name: updated.name || '', description: updated.description || '', image: updated.image || null };
+                    }
+                    render();
+                    closeEdit();
+                } catch (err) {
+                    console.error(err);
+                    alert('Failed to update brand');
+                }
+            });
+        }
     })();
 </script>
 @endpush

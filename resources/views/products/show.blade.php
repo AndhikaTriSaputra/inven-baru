@@ -1,3 +1,5 @@
+
+
 @extends('layouts.app')
 
 @section('header-left')
@@ -65,168 +67,188 @@
         </button>
     </div>
 
-    
+    <!-- Barcode Section -->
+    <div class="bg-white border border-gray-200 rounded-2xl p-8 shadow-lg text-center">
+        <div class="mb-4">
+            <!-- Barcode SVG -->
+            <svg width="300" height="80" viewBox="0 0 300 80" class="mx-auto">
+                <!-- Barcode lines -->
+                <rect x="10" y="10" width="2" height="60" fill="black"/>
+                <rect x="14" y="10" width="1" height="60" fill="black"/>
+                <rect x="17" y="10" width="2" height="60" fill="black"/>
+                <rect x="21" y="10" width="1" height="60" fill="black"/>
+                <rect x="24" y="10" width="2" height="60" fill="black"/>
+                <rect x="28" y="10" width="1" height="60" fill="black"/>
+                <rect x="31" y="10" width="2" height="60" fill="black"/>
+                <rect x="35" y="10" width="1" height="60" fill="black"/>
+                <rect x="38" y="10" width="2" height="60" fill="black"/>
+                <rect x="42" y="10" width="1" height="60" fill="black"/>
+                <rect x="45" y="10" width="2" height="60" fill="black"/>
+                <rect x="49" y="10" width="1" height="60" fill="black"/>
+                <rect x="52" y="10" width="2" height="60" fill="black"/>
+                <rect x="56" y="10" width="1" height="60" fill="black"/>
+                <rect x="59" y="10" width="2" height="60" fill="black"/>
+                <rect x="63" y="10" width="1" height="60" fill="black"/>
+                <rect x="66" y="10" width="2" height="60" fill="black"/>
+                <rect x="70" y="10" width="1" height="60" fill="black"/>
+                <rect x="73" y="10" width="2" height="60" fill="black"/>
+                <rect x="77" y="10" width="1" height="60" fill="black"/>
+                <rect x="80" y="10" width="2" height="60" fill="black"/>
+                <rect x="84" y="10" width="1" height="60" fill="black"/>
+                <rect x="87" y="10" width="2" height="60" fill="black"/>
+                <rect x="91" y="10" width="1" height="60" fill="black"/>
+                <rect x="94" y="10" width="2" height="60" fill="black"/>
+                <rect x="98" y="10" width="1" height="60" fill="black"/>
+                <rect x="101" y="10" width="2" height="60" fill="black"/>
+                <rect x="105" y="10" width="1" height="60" fill="black"/>
+                <rect x="108" y="10" width="2" height="60" fill="black"/>
+                <rect x="112" y="10" width="1" height="60" fill="black"/>
+                <rect x="115" y="10" width="2" height="60" fill="black"/>
+                <rect x="119" y="10" width="1" height="60" fill="black"/>
+                <rect x="122" y="10" width="2" height="60" fill="black"/>
+                <rect x="126" y="10" width="1" height="60" fill="black"/>
+                <rect x="129" y="10" width="2" height="60" fill="black"/>
+                <rect x="133" y="10" width="1" height="60" fill="black"/>
+                <rect x="136" y="10" width="2" height="60" fill="black"/>
+                <rect x="140" y="10" width="1" height="60" fill="black"/>
+                <rect x="143" y="10" width="2" height="60" fill="black"/>
+                <rect x="147" y="10" width="1" height="60" fill="black"/>
+                <rect x="150" y="10" width="2" height="60" fill="black"/>
+                <rect x="154" y="10" width="1" height="60" fill="black"/>
+                <rect x="157" y="10" width="2" height="60" fill="black"/>
+                <rect x="161" y="10" width="1" height="60" fill="black"/>
+                <rect x="164" y="10" width="2" height="60" fill="black"/>
+                <rect x="168" y="10" width="1" height="60" fill="black"/>
+                <rect x="171" y="10" width="2" height="60" fill="black"/>
+                <rect x="175" y="10" width="1" height="60" fill="black"/>
+                <rect x="178" y="10" width="2" height="60" fill="black"/>
+                <rect x="182" y="10" width="1" height="60" fill="black"/>
+                <rect x="185" y="10" width="2" height="60" fill="black"/>
+                <rect x="189" y="10" width="1" height="60" fill="black"/>
+                <rect x="192" y="10" width="2" height="60" fill="black"/>
+                <rect x="196" y="10" width="1" height="60" fill="black"/>
+                <rect x="199" y="10" width="1" height="60" fill="black"/>
+                <rect x="202" y="10" width="2" height="60" fill="black"/>
+                <rect x="206" y="10" width="1" height="60" fill="black"/>
+                <rect x="209" y="10" width="2" height="60" fill="black"/>
+                <rect x="213" y="10" width="1" height="60" fill="black"/>
+                <rect x="216" y="10" width="2" height="60" fill="black"/>
+                <rect x="220" y="10" width="1" height="60" fill="black"/>
+                <rect x="223" y="10" width="2" height="60" fill="black"/>
+                <rect x="227" y="10" width="1" height="60" fill="black"/>
+                <rect x="230" y="10" width="2" height="60" fill="black"/>
+                <rect x="234" y="10" width="1" height="60" fill="black"/>
+                <rect x="237" y="10" width="2" height="60" fill="black"/>
+                <rect x="241" y="10" width="1" height="60" fill="black"/>
+                <rect x="244" y="10" width="2" height="60" fill="black"/>
+                <rect x="248" y="10" width="1" height="60" fill="black"/>
+                <rect x="251" y="10" width="2" height="60" fill="black"/>
+                <rect x="255" y="10" width="1" height="60" fill="black"/>
+                <rect x="258" y="10" width="2" height="60" fill="black"/>
+                <rect x="262" y="10" width="1" height="60" fill="black"/>
+                <rect x="265" y="10" width="2" height="60" fill="black"/>
+                <rect x="269" y="10" width="1" height="60" fill="black"/>
+                <rect x="272" y="10" width="2" height="60" fill="black"/>
+                <rect x="276" y="10" width="1" height="60" fill="black"/>
+                <rect x="279" y="10" width="2" height="60" fill="black"/>
+                <rect x="283" y="10" width="1" height="60" fill="black"/>
+                <rect x="286" y="10" width="2" height="60" fill="black"/>
+            </svg>
+        </div>
+        <p class="text-lg font-semibold text-gray-800">{{ $product->code ?? 'No Code' }}</p>
+    </div>
 
     <!-- Product Information -->
     <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-lg">
-        <h3 class="text-lg font-semibold text-gray-800 mb-6">Product Information</h3>
-        <div class="overflow-hidden rounded-xl border border-gray-200">
-            <table class="w-full border-collapse">
-                <tbody class="divide-y divide-gray-200">
-                    <!-- Barcode merged row -->
-                    <tr>
-                        <td colspan="2" class="px-5 py-5">
-                            <div class="flex flex-col items-center text-center">
-                                <svg width="220" height="60" viewBox="0 0 300 80" class="mx-auto">
-                                    <rect x="10" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="14" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="17" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="21" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="24" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="28" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="31" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="35" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="38" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="42" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="45" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="49" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="52" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="56" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="59" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="63" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="66" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="70" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="73" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="77" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="80" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="84" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="87" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="91" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="94" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="98" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="101" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="105" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="108" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="112" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="115" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="119" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="122" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="126" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="129" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="133" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="136" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="140" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="143" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="147" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="150" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="154" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="157" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="161" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="164" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="168" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="171" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="175" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="178" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="182" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="185" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="189" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="192" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="196" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="199" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="202" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="206" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="209" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="213" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="216" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="220" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="223" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="227" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="230" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="234" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="237" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="241" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="244" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="248" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="251" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="255" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="258" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="262" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="265" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="269" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="272" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="276" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="279" y="10" width="2" height="60" fill="black"/>
-                                    <rect x="283" y="10" width="1" height="60" fill="black"/>
-                                    <rect x="286" y="10" width="2" height="60" fill="black"/>
-                                </svg>
-                                <p class="mt-2 text-sm font-semibold text-gray-800">{{ $product['code'] ?? 'No Code' }}</p>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr class="bg-gray-50">
-                        <td class="w-1/2 px-5 py-4 text-gray-700 font-semibold border-r border-gray-200">Type</td>
-                        <td class="w-1/2 px-5 py-4 text-gray-700 font-semibold">Product</td>
-                    </tr>
-                    <tr>
-                        <td class="px-5 py-4 text-gray-700 font-medium border-r border-gray-200">Code Product</td>
-                        <td class="px-5 py-4 text-gray-900 font-semibold">{{ $product['code'] ?? '-' }}</td>
-                    </tr>
-                    <tr class="bg-gray-50">
-                        <td class="px-5 py-4 text-gray-700 font-medium border-r border-gray-200">Product</td>
-                        <td class="px-5 py-4 text-gray-900 font-semibold">{{ $product['name'] ?? '-' }}</td>
-                    </tr>
-                    <tr>
-                        <td class="px-5 py-4 text-gray-700 font-medium border-r border-gray-200">Category</td>
-                        <td class="px-5 py-4 text-gray-900 font-semibold">{{ $product['category'] ?? '-' }}</td>
-                    </tr>
-                    <tr class="bg-gray-50">
-                        <td class="px-5 py-4 text-gray-700 font-medium border-r border-gray-200">Brand</td>
-                        <td class="px-5 py-4 text-gray-900 font-semibold">{{ $product['brand'] ?? '-' }}</td>
-                    </tr>
-                    <tr>
-                        <td class="px-5 py-4 text-gray-700 font-medium border-r border-gray-200">Unit</td>
-                        <td class="px-5 py-4 text-gray-900 font-semibold">{{ $product['unit'] ?? '-' }}</td>
-                    </tr>
-                    <tr class="bg-gray-50">
-                        <td class="px-5 py-4 text-gray-700 font-medium border-r border-gray-200">Tags</td>
-                        <td class="px-5 py-4 text-gray-900 font-semibold">{{ $product['tags'] ?? '' }}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Tags Section -->
-    <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-lg">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Tags</h3>
-        <div class="flex items-center space-x-2">
-            <input type="text" value="{{ $product['tags'] ?? '' }}" 
-                   class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-violet-500 focus:ring-1 focus:ring-violet-100 focus:outline-none" 
-                   placeholder="Enter tags..." readonly>
+        <h3 class="text-lg font-semibold text-gray-800 mb-6 pb-3 border-b border-gray-100">Product Information</h3>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Left Column -->
+            <div class="space-y-0">
+                <div class="flex justify-between items-center py-3 border-b border-gray-100">
+                    <span class="text-sm font-medium text-gray-500">Code Product</span>
+                    <span class="text-sm font-semibold text-gray-900">{{ $product->code ?? '-' }}</span>
+                </div>
+                <div class="flex justify-between items-center py-3 border-b border-gray-100">
+                    <span class="text-sm font-medium text-gray-500">Product</span>
+                    <span class="text-sm font-semibold text-gray-900">{{ $product->name ?? '-' }}</span>
+                </div>
+                <div class="flex justify-between items-center py-3 border-b border-gray-100">
+                    <span class="text-sm font-medium text-gray-500">Category</span>
+                    <span class="text-sm font-semibold text-gray-900">{{ $product->category ?? '-' }}</span>
+                </div>
+                <div class="flex justify-between items-center py-3 border-b border-gray-100">
+                    <span class="text-sm font-medium text-gray-500">Brand</span>
+                    <span class="text-sm font-semibold text-gray-900">{{ $product->brand ?? '-' }}</span>
+                </div>
+                <div class="flex justify-between items-center py-3 border-b border-gray-100">
+                    <span class="text-sm font-medium text-gray-500">Type</span>
+                    <span class="text-sm font-semibold text-gray-900">{{ ucfirst($product->type ?? 'standard') }} Product</span>
+                </div>
+                <div class="flex justify-between items-center py-3 border-b border-gray-100">
+                    <span class="text-sm font-medium text-gray-500">Unit</span>
+                    <span class="text-sm font-semibold text-gray-900">{{ $product->unit ?? '-' }}</span>
+                </div>
+                <div class="flex justify-between items-center py-3">
+                    <span class="text-sm font-medium text-gray-500">Stock Alert</span>
+                    <span class="text-sm font-semibold text-gray-900">{{ $product->stock_alert ?? '-' }}</span>
+                </div>
+            </div>
+            
+            <!-- Right Column -->
+            <div class="space-y-0">
+                <div class="flex justify-between items-center py-3 border-b border-gray-100">
+                    <span class="text-sm font-medium text-gray-500">Barcode Symbology</span>
+                    <span class="text-sm font-semibold text-gray-900">{{ $product->barcode_symbology ?? '-' }}</span>
+                </div>
+                <div class="flex justify-between items-center py-3 border-b border-gray-100">
+                    <span class="text-sm font-medium text-gray-500">Project</span>
+                    <span class="text-sm font-semibold text-gray-900">{{ $product->project ?? '-' }}</span>
+                </div>
+                <div class="flex justify-between items-center py-3 border-b border-gray-100">
+                    <span class="text-sm font-medium text-gray-500">Tags</span>
+                    <span class="text-sm font-semibold text-gray-900">{{ $product->tags ?? '-' }}</span>
+                </div>
+                <div class="flex justify-between items-center py-3">
+                    <span class="text-sm font-medium text-gray-500">Description</span>
+                    <span class="text-sm font-semibold text-gray-900">{{ $product->description ?? '-' }}</span>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Warehouse Inventory Section -->
     <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-lg">
         <h3 class="text-lg font-semibold text-gray-800 mb-4">Warehouse Inventory</h3>
-        <div class="space-y-3">
-            @if(!empty($product['warehouse_inventory']) && is_array($product['warehouse_inventory']))
-                @foreach($product['warehouse_inventory'] as $inventory)
-                    <div class="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
-                        <span class="text-sm font-medium text-gray-700">{{ $inventory['warehouse'] ?? 'Unknown Warehouse' }}</span>
-                        <span class="text-sm font-semibold text-gray-900">{{ number_format($inventory['quantity'] ?? 0, 2) }} {{ $product['unit'] ?? 'Pcs' }}</span>
-                    </div>
-                @endforeach
-            @else
-                <div class="text-center py-8 text-gray-500">
-                    <div class="flex flex-col items-center space-y-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                        </svg>
-                        <span class="text-sm font-medium">No warehouse inventory data available</span>
-                    </div>
-                </div>
-            @endif
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Warehouse</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Quantity</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    @if(!empty($product->warehouse_inventory) && is_array($product->warehouse_inventory))
+                        @foreach($product->warehouse_inventory as $inventory)
+                            <tr>
+                                <td class="px-4 py-3 text-sm text-gray-900">{{ $inventory['warehouse'] ?? 'Unknown Warehouse' }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-900">{{ number_format($inventory['quantity'] ?? 0, 2) }} {{ $product->unit ?? 'Pcs' }}</td>
+                            </tr>
+                        @endforeach
+                    @else
+                        <tr>
+                            <td colspan="2" class="px-4 py-8 text-center text-gray-500">
+                                <div class="flex flex-col items-center space-y-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                                    </svg>
+                                    <span class="text-sm font-medium">No warehouse inventory data available</span>
+                                </div>
+                            </td>
+                        </tr>
+                    @endif
+                </tbody>
+            </table>
         </div>
     </div>
 

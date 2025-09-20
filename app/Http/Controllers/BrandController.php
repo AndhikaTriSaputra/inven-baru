@@ -89,7 +89,7 @@ class BrandController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Brand $brand): RedirectResponse
+    public function update(Request $request, Brand $brand)
     {
         $validated = $request->validate([
             'name' => ['required','string','max:255'],
@@ -116,15 +116,24 @@ class BrandController extends Controller
             'updated_at' => now(),
         ]);
 
+        if ($request->wantsJson()) {
+            return response()->json(['brand' => ['id' => $brand->id, 'name' => $validated['name'], 'description' => $validated['description'] ?? null, 'image' => $imagePath]]);
+        }
+
         return redirect()->route('brands.index')->with('ok','Brand updated');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Brand $brand): RedirectResponse
+    public function destroy(Request $request, Brand $brand)
     {
         DB::table('brands')->where('id',$brand->id)->delete();
+        
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Brand deleted']);
+        }
+        
         return redirect()->route('brands.index')->with('ok','Brand deleted');
     }
 }

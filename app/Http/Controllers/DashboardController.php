@@ -2,26 +2,26 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        // stats (pakai tabel kamu; kalau belum ada, kasih 0)
+        // Stats
         $stats = [
-            'products'   => DB::table('products')->count()      ?? 0,
-            'purchases'  => DB::table('purchases')->count()     ?? 0,
-            'warehouses' => DB::table('warehouses')->count()    ?? 0,
+            'products'   => DB::table('products')->count() ?? 0,
+            'purchases'  => DB::table('purchases')->count() ?? 0,
+            'warehouses' => DB::table('warehouses')->whereNull('deleted_at')->count() ?? 0,
         ];
 
-        // sales this week (7 hari terakhir) -> jumlah transaksi per hari
+        // Chart (last 7 days)
         $startDate = now()->subDays(6)->startOfDay();
         $endDate   = now()->endOfDay();
 
-        $salesByDay = DB::table('sales')
-            ->selectRaw('DATE(`date`) as d, COUNT(*) as c')
+        $salesByDay = DB::table('purchases')
+            ->selectRaw('DATE(date) as d, COUNT(*) as c')
             ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
             ->groupBy('d')
             ->pluck('c', 'd');
@@ -39,7 +39,10 @@ class DashboardController extends Controller
             'series' => $series,
         ];
 
-        // recent purchases (join supplier & warehouse)
+        $max = max($chart['series']);
+        $chart['max'] = $max < 5 ? 5 : $max + 2;
+
+        // Recent purchases
         $recentPurchases = DB::table('purchases as pu')
             ->leftJoin('providers as pr', 'pr.id', '=', 'pu.provider_id')
             ->leftJoin('warehouses as w', 'w.id', '=', 'pu.warehouse_id')
@@ -48,11 +51,10 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
-        // filter gudang
+        // Gudang + produk
         $warehouses = DB::table('warehouses')->select('id','name')->get();
         $selectedWarehouse = (int) $request->get('warehouse_id');
 
-        // tabel bawah: contoh join sederhana (silakan sesuaikan dengan skema kamu)
         $base = DB::table('products as p')
             ->leftJoin('product_warehouse as pw','pw.product_id','=','p.id')
             ->leftJoin('warehouses as w','w.id','=','pw.warehouse_id')
@@ -63,8 +65,9 @@ class DashboardController extends Controller
             $base->where('w.id', $selectedWarehouse);
         }
 
-       $rows = $base->paginate(10); // ganti ->paginate(10) kalau mau paging
+        $rows = $base->paginate(10);
 
+        // ✅ Sekarang semua variabel sudah didefinisikan
         return view('dashboard.index', compact(
             'stats','chart','recentPurchases','warehouses','selectedWarehouse','rows'
         ));

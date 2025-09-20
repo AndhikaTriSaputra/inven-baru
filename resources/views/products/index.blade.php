@@ -1,3 +1,5 @@
+
+
 @extends('layouts.app')
 
 @section('header-left')
@@ -72,11 +74,11 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 5h18M6 12h12M10 19h4"/></svg>
                 <span>Filter</span>
             </button>
-            <a href="{{ route('products.export.pdf') }}" id="exportPdfBtn" class="px-4 py-2 text-sm font-semibold rounded-lg border border-emerald-200 text-emerald-600 hover:bg-emerald-50 inline-flex items-center gap-2 transition-all duration-200">
+            <a href="#" id="exportPdfBtn" class="px-4 py-2 text-sm font-semibold rounded-lg border border-emerald-200 text-emerald-600 hover:bg-emerald-50 inline-flex items-center gap-2 transition-all duration-200">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14"/></svg>
                 <span>PDF</span>
             </a>
-            <a href="{{ route('products.export.excel') }}" id="exportExcelBtn" class="px-4 py-2 text-sm font-semibold rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 inline-flex items-center gap-2 transition-all duration-200">
+            <a href="#" id="exportExcelBtn" class="px-4 py-2 text-sm font-semibold rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 inline-flex items-center gap-2 transition-all duration-200">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4l16 16M20 4L4 20"/></svg>
                 <span>EXCEL</span>
             </a>
@@ -112,7 +114,7 @@
                     <th class="px-3 py-2 w-28 text-left text-[11px] font-semibold text-gray-500">Code</th>
                     <th class="px-3 py-2 w-28 text-left text-[11px] font-semibold text-gray-500">Brand</th>
                     <th class="px-3 py-2 w-16 text-left text-[11px] font-semibold text-gray-500">Unit</th>
-                    <th class="px-3 py-2 w-24 text-left text-[11px] font-semibold text-gray-500">Quantity</th>
+                    
                     <th class="px-3 py-2 w-24 text-right text-[11px] font-semibold text-gray-500">Action</th>
                 </tr>
             </thead>
@@ -125,7 +127,27 @@
                         @php $p = is_object($p)? (array)$p : $p; @endphp
                         <tr class="hover:bg-gray-50 transition-colors" data-name="{{ strtolower($p['name'] ?? '') }}" data-code="{{ strtolower($p['code'] ?? '') }}" data-brand="{{ strtolower($p['brand'] ?? '') }}" data-category="{{ strtolower($p['category'] ?? '') }}">
                             <td class="px-3 py-2"><input type="checkbox" class="selectRow" value="{{ $p['id'] ?? '' }}"></td>
-                            <td class="px-3 py-2"><div class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center text-[10px] text-gray-400 border">image</div></td>
+@php
+    $productImages = [];
+    if (!empty($p['image'])) {
+        $productImages = is_array($p['image']) 
+            ? $p['image'] 
+            : explode(',', $p['image']);
+        $productImages = array_filter(array_map('trim', $productImages));
+    }
+@endphp
+
+
+<td class="px-3 py-2">
+@if(!empty($productImages))
+    <img src="{{ asset('images/products/' . $productImages[0]) }}" class="w-10 h-10 object-cover rounded-xl border" />
+@else
+    <div class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center text-[10px] text-gray-400 border">No image</div>
+@endif
+
+</td>
+
+
                             <td class="px-3 py-2 text-[12px] text-gray-700">{{ ucfirst($p['type'] ?? 'Product') }}</td>
                             <td class="px-3 py-2 text-[13px] font-medium text-gray-900 whitespace-nowrap truncate max-w-[220px] pr-2">{{ $p['name'] ?? '-' }}</td>
                             <td class="px-3 py-2"><span class="inline-block text-[11px] px-2 py-1 rounded-xl bg-violet-50 text-violet-700 border border-violet-200 whitespace-nowrap">Tag</span></td>
@@ -133,7 +155,6 @@
                             <td class="px-3 py-2 text-[13px] text-gray-700 whitespace-nowrap truncate max-w-[140px]">{{ $p['code'] ?? '-' }}</td>
                             <td class="px-3 py-2 text-[13px] text-gray-700 whitespace-nowrap truncate max-w-[140px]">{{ $p['brand'] ?? '-' }}</td>
                             <td class="px-3 py-2 text-[13px] text-gray-700">{{ $p['unit'] ?? 'Pcs' }}</td>
-                            <td class="px-3 py-2 text-[13px] text-gray-700"><span class="px-2.5 py-1 rounded-xl border text-[12px] bg-gray-50">{{ $p['stock'] ?? 0 }} {{ $p['unit'] ?? 'Pcs' }}</span></td>
                             <td class="px-3 py-2 text-[13px] text-gray-700">
                                 <div class="flex items-center gap-2 justify-end">
                                     <a href="{{ route('products.show', $p['id']) }}" class="w-8 h-8 rounded-full border border-blue-300 text-blue-600 hover:bg-blue-50 grid place-items-center" title="View">
@@ -745,21 +766,23 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!input || !tbody) return;
 
     const searchUrl = @json(route('products.search'));
+    const exportPdfUrl = @json(route('products.export.pdf'));
+    const exportExcelUrl = @json(route('products.export.excel'));
     const initialProducts = @json($rows ?? []);
 
     const escape = (v) => String(v ?? '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[s]));
     const render = (products) => {
         if (!products || products.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="12" class="px-4 py-8 text-center text-gray-500">No products found</td></tr>`;
+            tbody.innerHTML = <tr><td colspan="12" class="px-4 py-8 text-center text-gray-500">No products found</td></tr>;
             return;
         }
-        tbody.innerHTML = products.map(p => {
+            tbody.innerHTML = products.map(p => {
             const name = escape(p.name);
             const code = escape(p.code);
             const brand = escape(p.brand);
             const category = escape(p.category);
             const unit = escape(p.unit || 'Pcs');
-            const stock = escape(p.stock ?? p.quantity ?? 0);
+            
             const id = escape(p.id || '');
             const type = escape((p.type || 'Product').charAt(0).toUpperCase() + (p.type || 'Product').slice(1));
             const project = escape(p.project || '-');
@@ -774,7 +797,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td class="px-3 py-2 text-[13px] text-gray-700 whitespace-nowrap truncate max-w-[140px]">${code || '-'}</td>
                     <td class="px-3 py-2 text-[13px] text-gray-700 whitespace-nowrap truncate max-w-[140px]">${brand || '-'}</td>
                     <td class="px-3 py-2 text-[13px] text-gray-700">${unit}</td>
-                    <td class="px-3 py-2 text-[13px] text-gray-700"><span class="px-2.5 py-1 rounded-xl border text-[12px] bg-gray-50">${stock} ${unit}</span></td>
                     <td class="px-3 py-2 text-[13px] text-gray-700">
                         <div class="flex items-center gap-2 justify-end">
                             <a href="/products/${r.id}" class="w-8 h-8 rounded-full border border-blue-300 text-blue-600 hover:bg-blue-50 grid place-items-center" title="View">
@@ -815,7 +837,7 @@ document.addEventListener('DOMContentLoaded', function() {
         timerId = setTimeout(async () => {
             if (!q.trim()) { render(initialProducts); return; }
             try {
-                const res = await fetch(`${searchUrl}?q=${encodeURIComponent(q)}`, { headers: { 'Accept':'application/json' } });
+                const res = await fetch(${searchUrl}?q=${encodeURIComponent(q)}, { headers: { 'Accept':'application/json' } });
                 if (!res.ok) throw new Error('Search failed');
                 const data = await res.json();
                 const products = Array.isArray(data.products) ? data.products : [];
@@ -824,6 +846,33 @@ document.addEventListener('DOMContentLoaded', function() {
                 // keep local results if request fails
             }
         }, 200);
+    });
+
+    // Export handlers include current filters from the modal selections and search input
+    function currentFiltersQuery() {
+        const params = new URLSearchParams();
+        const code = document.getElementById('filterCode')?.value || '';
+        const name = document.getElementById('filterProduct')?.value || '';
+        const category = document.getElementById('filterCategory')?.value || '';
+        const brand = document.getElementById('filterBrand')?.value || '';
+        if (code) params.set('code', code);
+        if (name) params.set('name', name);
+        if (category) params.set('category_id', category);
+        if (brand) params.set('brand_id', brand);
+        return params.toString();
+    }
+
+    document.getElementById('exportPdfBtn')?.addEventListener('click', (e)=>{
+        e.preventDefault();
+        const qs = currentFiltersQuery();
+        const url = qs ? ${exportPdfUrl}?${qs} : exportPdfUrl;
+        window.open(url, '_blank');
+    });
+    document.getElementById('exportExcelBtn')?.addEventListener('click', (e)=>{
+        e.preventDefault();
+        const qs = currentFiltersQuery();
+        const url = qs ? ${exportExcelUrl}?${qs} : exportExcelUrl;
+        window.location.href = url;
     });
 })();
 
@@ -853,5 +902,3 @@ document.getElementById('importForm').addEventListener('submit', async (e)=>{
 });
 </script>
 @endpush
-
-

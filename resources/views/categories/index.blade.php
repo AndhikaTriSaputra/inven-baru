@@ -75,6 +75,42 @@
         </div>
     </div>
     </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/40"></div>
+        <div class="absolute inset-0 flex items-center justify-center p-4">
+            <div class="w-full max-w-lg bg-white rounded-2xl shadow-xl border border-gray-100">
+                <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                    <h3 class="text-lg font-semibold">Edit</h3>
+                    <button id="closeEditModal" class="text-gray-500 hover:text-gray-700">✕</button>
+                </div>
+                <form id="editCategoryForm" method="POST" class="p-6">
+                    @csrf
+                    @method('PUT')
+                    <div class="grid grid-cols-1 gap-4">
+                        <div>
+                            <label class="block text-sm text-gray-600 mb-1">Category Code *</label>
+                            <input type="text" id="editCode" name="code" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-violet-500 focus:ring-1 focus:ring-violet-100">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-600 mb-1">Category Name *</label>
+                            <input type="text" id="editName" name="name" required class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-violet-500 focus:ring-1 focus:ring-violet-100">
+                        </div>
+                    </div>
+                    <div class="mt-6 flex items-center justify-end space-x-3">
+                        <button type="button" id="cancelEditModal" class="px-4 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-50">Cancel</button>
+                        <button type="submit" class="px-4 py-2 rounded-full bg-violet-600 text-white hover:bg-violet-500 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Submit
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     
 </div>
 @endsection
@@ -133,7 +169,16 @@
                     <td class="py-3 px-4 text-gray-700">${r.code}</td>
                     <td class="py-3 px-4 text-gray-700">${r.name}</td>
                     <td class="py-3 px-4">
-                        <a href="/products/categories/${r.id}/edit" class="text-emerald-600 hover:text-emerald-500">Edit</a>
+                        <button data-action="edit" data-id="${r.id}" data-code="${r.code}" data-name="${r.name}" class="text-emerald-600 hover:text-emerald-500 mr-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </svg>
+                        </button>
+                        <button data-action="delete" data-id="${r.id}" class="text-red-600 hover:text-red-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -159,16 +204,33 @@
         render();
 
         // Modal logic
-        const modal = document.getElementById('createModal');
+        const createModal = document.getElementById('createModal');
+        const editModal = document.getElementById('editModal');
         const openBtn = document.getElementById('openCreateModal');
         const closeBtn = document.getElementById('closeCreateModal');
         const cancelBtn = document.getElementById('cancelCreateModal');
         const form = document.getElementById('createCategoryForm');
 
-        function openModal(){ modal.classList.remove('hidden'); }
-        function closeModal(){ modal.classList.add('hidden'); }
-        [openBtn].forEach(b=> b && b.addEventListener('click', openModal));
-        ;[closeBtn, cancelBtn].forEach(b=> b && b.addEventListener('click', closeModal));
+        function openCreateModal(){ createModal.classList.remove('hidden'); }
+        function closeCreateModal(){ createModal.classList.add('hidden'); }
+        function openEditModal(id, code, name){
+            document.getElementById('editCode').value = code;
+            document.getElementById('editName').value = name;
+            document.getElementById('editCategoryForm').action = `/app/categories/${id}`;
+            editModal.classList.remove('hidden');
+        }
+        function closeEditModal(){ editModal.classList.add('hidden'); }
+        
+        // Make functions globally accessible
+        window.openEditModal = openEditModal;
+        window.closeEditModal = closeEditModal;
+        
+        [openBtn].forEach(b=> b && b.addEventListener('click', openCreateModal));
+        [closeBtn, cancelBtn].forEach(b=> b && b.addEventListener('click', closeCreateModal));
+        
+        // Edit modal event listeners
+        document.getElementById('closeEditModal').addEventListener('click', closeEditModal);
+        document.getElementById('cancelEditModal').addEventListener('click', closeEditModal);
 
         // AJAX submit create form
         if (form) {
@@ -189,13 +251,90 @@
                     // push to local table data and re-render
                     data.push({ id: created.id, code: created.code || '', name: created.name || '' });
                     page = 1; term = ''; sortKey = 'name'; sortAsc = true; render();
-                    form.reset(); closeModal();
+                    form.reset(); closeCreateModal();
                 } catch (err) {
                     console.error(err);
                     alert('Failed to create category');
                 }
             });
         }
+
+        // AJAX submit edit form
+        const editForm = document.getElementById('editCategoryForm');
+        if (editForm) {
+            editForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(editForm);
+                const csrf = editForm.querySelector('input[name="_token"]').value;
+                try {
+                    const res = await fetch(editForm.action, {
+                        method: 'POST',
+                        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf },
+                        credentials: 'same-origin',
+                        body: formData
+                    });
+                    if (!res.ok) throw new Error('Request failed');
+                    const json = await res.json();
+                    const updated = json.category || {};
+                    // update local table data and re-render
+                    const index = data.findIndex(d => d.id == updated.id);
+                    if (index !== -1) {
+                        data[index] = { id: updated.id, code: updated.code || '', name: updated.name || '' };
+                    }
+                    render();
+                    closeEditModal();
+                } catch (err) {
+                    console.error(err);
+                    alert('Failed to update category');
+                }
+            });
+        }
+
+        // Delete category function
+        function deleteCategory(id) {
+            if (!confirm('Are you sure you want to delete this category?')) return;
+            fetch(`/app/categories/${id}`, {
+                method: 'DELETE',
+                headers: { 
+                    'Accept': 'application/json', 
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                credentials: 'same-origin'
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('Request failed');
+                // remove from local table data and re-render
+                const index = data.findIndex(d => d.id == id);
+                if (index !== -1) {
+                    data.splice(index, 1);
+                }
+                render();
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Failed to delete category');
+            });
+        }
+        
+        // Make deleteCategory globally accessible
+        window.deleteCategory = deleteCategory;
+        
+        // Event delegation for action buttons
+        tbody.addEventListener('click', function(e) {
+            const button = e.target.closest('button[data-action]');
+            if (!button) return;
+            
+            const action = button.getAttribute('data-action');
+            const id = button.getAttribute('data-id');
+            
+            if (action === 'edit') {
+                const code = button.getAttribute('data-code');
+                const name = button.getAttribute('data-name');
+                openEditModal(id, code, name);
+            } else if (action === 'delete') {
+                deleteCategory(id);
+            }
+        });
     })();
 </script>
 @endpush

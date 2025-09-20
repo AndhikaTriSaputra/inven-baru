@@ -15,9 +15,14 @@ class UserSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'admin@example.com'],
             [
-                'name' => 'Admin',
+                'firstname' => 'Admin',
+                'lastname' => 'User',
+                'username' => 'admin',
                 'password' => 'password', // Will be hashed via cast
-                'email_verified_at' => now(),
+                'phone' => '08123456789',
+                'role_id' => 1,
+                'statut' => 1,
+                'is_all_warehouses' => 1,
             ]
         );
     }

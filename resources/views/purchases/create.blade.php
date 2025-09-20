@@ -1,3 +1,5 @@
+create purchases
+
 @extends('layouts.app')
 
 @section('header')
@@ -10,7 +12,7 @@ Create Purchase
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Date <span class="text-red-500">*</span></label>
                     <input type="date" name="date" value="{{ old('date', now()->format('Y-m-d')) }}" class="w-full border rounded-lg px-3 py-2">
@@ -33,7 +35,151 @@ Create Purchase
                         @endforeach
                     </select>
                 </div>
-            </div>
+            </div> -->
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Date <span class="text-red-500">*</span></label>
+        <input type="date" name="date" value="{{ old('date', now()->format('Y-m-d')) }}" class="w-full border rounded-lg px-3 py-2">
+    </div>
+
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Supplier <span class="text-red-500">*</span></label>
+        <select name="provider_id" class="w-full border rounded-lg px-3 py-2">
+            <option value="">Choose Supplier</option>
+            @foreach($providers as $p)
+                <option value="{{ $p->id }}" @selected(old('provider_id')==$p->id)>{{ $p->name }}</option>
+            @endforeach
+        </select>
+    </div>
+
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Warehouse <span class="text-red-500">*</span></label>
+        <select id="warehouse_id" name="warehouse_id" class="w-full border rounded-lg px-3 py-2">
+            <option value="">Choose Warehouse</option>
+            @foreach($warehouses as $w)
+                <option value="{{ $w->id }}" @selected(old('warehouse_id')==$w->id)>{{ $w->name }}</option>
+            @endforeach
+        </select>
+    </div>
+
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Brand</label>
+        <select name="brand_id" class="w-full border rounded-lg px-3 py-2">
+            <option value="">Choose Brand</option>
+            @foreach ($brands as $brand)
+                <option value="{{ $brand->id }}" @selected(old('brand_id') == $brand->id)>{{ $brand->name }}</option>
+            @endforeach
+        </select>
+    </div>
+
+    @if (isset($projects) && $projects->count())
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Project</label>
+        <select name="project_id" class="w-full border rounded-lg px-3 py-2">
+            <option value="">Choose Project</option>
+            @foreach ($projects as $proj)
+                <option value="{{ $proj->id }}" @selected(old('project_id') == $proj->id)>{{ $proj->name }}</option>
+            @endforeach
+        </select>
+    </div>
+    @endif
+
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Product Type</label>
+        <select name="type" class="w-full border rounded-lg px-3 py-2">
+            <option value="">Choose Type</option>
+            @foreach ($types as $t)
+                <option value="{{ $t }}" @selected(old('type') == $t)>{{ $t }}</option>
+            @endforeach
+        </select>
+    </div>
+
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Barcode Symbology</label>
+        <select name="barcode_symbology" class="w-full border rounded-lg px-3 py-2">
+            <option value="">Choose Barcode</option>
+            @foreach ($barcode_types as $btype)
+                <option value="{{ strtolower(str_replace(' ', '', $btype)) }}" @selected(old('barcode_symbology') == strtolower(str_replace(' ', '', $btype)))>{{ $btype }}</option>
+            @endforeach
+        </select>
+    </div>
+
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Category <span class="text-red-500">*</span></label>
+        <select name="category_id" class="w-full border rounded-lg px-3 py-2" required>
+            <option value="">Choose Category</option>
+            @foreach($categories as $c)
+                <option value="{{ $c->id }}" @selected(old('category_id')==$c->id)>{{ $c->name }}</option>
+            @endforeach
+        </select>
+        @error('category_id')
+            <div class="text-sm text-red-600 mt-1">{{ $message }}</div>
+        @enderror
+    </div>
+</div>
+
+
+            <div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">Brand</label>
+    <select name="brand_id" class="w-full border rounded-lg px-3 py-2">
+        <option value="">Choose Brand</option>
+        @foreach ($brands as $brand)
+            <option value="{{ $brand->id }}" @selected(old('brand_id') == $brand->id)>{{ $brand->name }}</option>
+        @endforeach
+    </select>
+</div>
+
+@if (isset($projects) && $projects->count())
+<div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">Project</label>
+    <select name="project_id" class="w-full border rounded-lg px-3 py-2">
+        <option value="">Choose Project</option>
+        @foreach ($projects as $proj)
+            <option value="{{ $proj->id }}" @selected(old('project_id') == $proj->id)>{{ $proj->name }}</option>
+        @endforeach
+    </select>
+</div>
+@endif
+
+<div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">Product Type</label>
+    <select name="type" class="w-full border rounded-lg px-3 py-2">
+        <option value="">Choose Type</option>
+        @foreach ($types as $t)
+            <option value="{{ $t }}" @selected(old('type') == $t)>{{ $t }}</option>
+        @endforeach
+    </select>
+</div>
+
+<div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">Barcode Symbology</label>
+    <select name="barcode_symbology" class="w-full border rounded-lg px-3 py-2">
+        <option value="">Choose Barcode</option>
+        @foreach ($barcode_types as $btype)
+            <option value="{{ strtolower(str_replace(' ', '', $btype)) }}" @selected(old('barcode_symbology') == strtolower(str_replace(' ', '', $btype)))>{{ $btype }}</option>
+        @endforeach
+    </select>
+</div>
+
+
+            <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        Category <span class="text-red-500">*</span>
+      </label>
+      <select name="category_id" class="w-full border rounded-lg px-3 py-2" required>
+          <option value="">Choose Category</option>
+          @foreach($categories as $c)
+            <option value="{{ $c->id }}" @selected(old('category_id')==$c->id)>
+              {{ $c->name }}
+            </option>
+          @endforeach
+      </select>
+      @error('category_id')
+        <div class="text-sm text-red-600 mt-1">{{ $message }}</div>
+      @enderror
+    </div>
+</div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Product</label>
@@ -69,11 +215,18 @@ Create Purchase
                 <label class="block text-sm font-medium text-gray-700 mb-1">Note</label>
                 <textarea name="notes" rows="4" class="w-full border rounded-lg px-3 py-2" placeholder="A few words ...">{{ old('notes') }}</textarea>
             </div>
-
-            <div>
-                <button type="submit" class="px-5 py-2 rounded-lg bg-violet-600 text-white">Submit</button>
-            </div>
         </div>
+
+        <div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+    <select name="status" class="w-full border rounded-lg px-3 py-2">
+        <option value="received" @selected(old('status') == 'received')>Received</option>
+        <option value="pending" @selected(old('status') == 'pending')>Pending</option>
+        <option value="ordered" @selected(old('status') == 'ordered')>Ordered</option>
+    </select>
+</div>
+
+        
 
         <div>
             <div class="border border-gray-200 rounded-xl p-4">
@@ -85,7 +238,8 @@ Create Purchase
                     </label>
                 </div>
                 <div id="purchaseImagePreview" class="mt-3 hidden">
-                    <img src="#" alt="Preview" class="max-w-full rounded border">
+                    <img src="" alt="Preview" class="mx-auto max-h-48">
+
                 </div>
             </div>
         </div>
@@ -94,6 +248,9 @@ Create Purchase
     @error('items')
     <div class="mt-4 text-red-600 text-sm">{{ $message }}</div>
     @enderror
+     <div>
+                <button type="submit" class="px-5 py-2 rounded-lg bg-violet-600 text-white">Submit</button>
+            </div>
 </form>
 
 @push('scripts')
@@ -105,6 +262,8 @@ document.addEventListener('DOMContentLoaded', function(){
     const noItemsRow = document.getElementById('noItemsRow');
     const search = document.getElementById('productSearch');
     const results = document.getElementById('searchResults');
+
+    
 
     function ensureNoRow(){ if (itemsBody.querySelectorAll('tr[data-row]').length === 0) { noItemsRow.classList.remove('hidden'); } }
 

@@ -1,3 +1,5 @@
+
+
 @extends('layouts.app')
 
 @section('header')
@@ -17,7 +19,7 @@
 @endsection
 
 @section('content')
-<form action="{{ route('products.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8" autocomplete="off" id="productForm">
+<form action="{{ route('products.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8 relative z-10" autocomplete="off" id="productForm">
     @csrf
     
     <!-- Success Message -->
@@ -130,7 +132,7 @@
                                class="w-full rounded-lg border-2 border-gray-200 px-3 py-2.5 pr-10 text-sm text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-100 focus:outline-none hover:border-gray-300" 
                                placeholder="Enter product code" required />
                         <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-                            <button type="button" onclick="generateRandomBarcode()" class="p-1 rounded hover:bg-gray-100 transition-colors duration-200" title="Generate random barcode">
+                            <button type="button" onclick="generateRandomBarcode()" class="p-1 rounded hover:bg-gray-100 transition-colors duration-200 cursor-pointer" title="Generate random barcode">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 hover:text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
                                 </svg>
@@ -161,16 +163,10 @@
                     <div class="relative">
                         <select name="category_id" class="w-full rounded-lg border-2 border-gray-200 px-2.5 py-2 pr-8 appearance-none text-sm text-gray-900 transition-all duration-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-100 focus:outline-none hover:border-gray-300" required>
                             <option value="">Choose category…</option>
-                            @if(!empty($categories) && is_array($categories))
-                                @foreach($categories as $category)
-                                    @if(is_array($category) && isset($category['id']) && isset($category['name']))
-                                        <option value="{{ $category['id'] }}" {{ old('category_id')==$category['id'] ? 'selected' : '' }}>{{ $category['name'] }}</option>
-                                    @endif
-                                @endforeach
-                            @else
-                                <!-- Debug: No categories available -->
-                                <option value="" disabled>No categories found ({{ count($categories ?? []) }} items)</option>
-                            @endif
+                            @foreach(($categories ?? collect()) as $category)
+                                <option value="{{ $category->id }}">{{ $category->name }}</option>
+                            @endforeach
+
                         </select>
                         <div class="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -190,15 +186,14 @@
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-3">Brand</label>
                     <div class="relative">
-                        <select name="brand_id" class="w-full rounded-lg border-2 border-gray-200 px-2.5 py-2 pr-8 appearance-none text-sm text-gray-900 transition-all duration-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-100 focus:outline-none hover:border-gray-300">
+                        <select name="brand_id" id="brand_id" class="w-full rounded-lg border-2 border-gray-200 px-2.5 py-2 pr-8 appearance-none text-sm text-gray-900 transition-all duration-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-100 focus:outline-none hover:border-gray-300">
                             <option value="">Choose brand…</option>
-                            @if(!empty($brands) && is_array($brands))
+                            @if($brands->count())
                                 @foreach($brands as $brand)
-                                    @if(is_array($brand) && isset($brand['id']) && isset($brand['name']))
-                                        <option value="{{ $brand['id'] }}" {{ old('brand_id')==$brand['id'] ? 'selected' : '' }}>{{ $brand['name'] }}</option>
-                                    @endif
+                                    <option value="{{ $brand->id }}">{{ $brand->name }}</option>
                                 @endforeach
                             @endif
+
                         </select>
                         <div class="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -220,17 +215,11 @@
                     <div class="relative">
                         <select name="project_id" class="w-full rounded-lg border-2 border-gray-200 px-2.5 py-2 pr-8 appearance-none text-sm text-gray-900 transition-all duration-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-100 focus:outline-none hover:border-gray-300">
                             <option value="">Choose project…</option>
-                            @isset($projects)
+                            @if(!empty($projects) && is_array($projects))
                                 @foreach($projects as $project)
-                                    @php
-                                        $projId = is_array($project) ? ($project['id'] ?? null) : ($project->id ?? null);
-                                        $projName = is_array($project) ? ($project['name'] ?? '') : ($project->name ?? '');
-                                    @endphp
-                                    @if(!is_null($projId))
-                                        <option value="{{ $projId }}" {{ old('project_id')==$projId ? 'selected' : '' }}>{{ $projName }}</option>
-                                    @endif
+                                    <option value="{{ $project->id }}">{{ $project->name }}</option>
                                 @endforeach
-                            @endisset
+                            @endif
                         </select>
                         <div class="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -248,21 +237,13 @@
                     @enderror
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Tag</label>
+                    <!-- <label class="block text-sm font-semibold text-gray-700 mb-2">Tag</label>
                     <div class="relative">
-                        <select name="tag_id" class="w-full rounded-lg border-2 border-gray-200 px-2.5 py-2 pr-8 appearance-none text-sm text-gray-900 transition-all duration-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-100 focus:outline-none hover:border-gray-300">
+                        <select name="tag_id" id="tag_id" class="w-full rounded-lg border-2 border-gray-200 px-2.5 py-2 pr-8 appearance-none text-sm text-gray-900 transition-all duration-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-100 focus:outline-none hover:border-gray-300">
                             <option value="">Choose tag…</option>
-                            @isset($tags)
-                                @foreach($tags as $tag)
-                                    @php
-                                        $tagId = is_array($tag) ? ($tag['id'] ?? null) : ($tag->id ?? null);
-                                        $tagName = is_array($tag) ? ($tag['name'] ?? '') : ($tag->name ?? '');
-                                    @endphp
-                                    @if(!is_null($tagId))
-                                        <option value="{{ $tagId }}" {{ old('tag_id')==$tagId ? 'selected' : '' }}>{{ $tagName }}</option>
-                                    @endif
-                                @endforeach
-                            @endisset
+                             @foreach ($tags as $tag)
+                                <option value="{{ $tag->id }}">{{ $tag->name }}</option>
+                            @endforeach
                         </select>
                         <div class="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -270,6 +251,72 @@
                             </svg>
                         </div>
                     </div>
+                     -->
+
+                     <div class="flex gap-2">
+    <select name="tag_id" id="tag_id" class="form-select flex-1">
+        <option value="">-- Choose Tag --</option>
+        @foreach($tags as $tag)
+            <option value="{{ $tag->id }}">{{ $tag->name }}</option>
+        @endforeach
+    </select>
+    <button type="button" onclick="openTagModal()" class="px-3 py-1 text-white bg-violet-500 rounded hover:bg-violet-600">
+        +
+    </button>
+</div>
+
+
+<div id="tagModal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+    <div class="bg-white p-6 rounded shadow w-96">
+        <h2 class="text-lg font-bold mb-2">Create New Tag</h2>
+        <input type="text" id="tagName" class="w-full mb-2 p-2 border rounded" placeholder="Enter tag name">
+        <label class="text-sm mb-1 block">Tag Color</label>
+        <input type="color" id="tagColor" class="w-full mb-4">
+        <div class="flex justify-end gap-2">
+            <button onclick="closeTagModal()" class="border px-4 py-1 rounded">Cancel</button>
+            <button onclick="submitTag()" class="bg-violet-600 text-white px-4 py-1 rounded">OK</button>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+function openTagModal() {
+    document.getElementById('tagModal').classList.remove('hidden');
+}
+
+function closeTagModal() {
+    document.getElementById('tagModal').classList.add('hidden');
+}
+
+function submitTag() {
+    const name = document.getElementById('tagName').value;
+    const color = document.getElementById('tagColor').value;
+
+    fetch("{{ route('tags.ajax-create') }}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': "{{ csrf_token() }}"
+        },
+        body: JSON.stringify({ name, color })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            const select = document.getElementById('tag_id');
+            const opt = document.createElement('option');
+            opt.value = data.tag.id;
+            opt.innerText = data.tag.name;
+            select.appendChild(opt);
+            select.value = data.tag.id;
+            closeTagModal();
+        }
+    });
+}
+</script>
+@endpush
+
                     @error('tag_id')
                     <div class="mt-1 flex items-center space-x-1 text-red-600">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -346,15 +393,15 @@
                         <span class="text-red-500 font-bold">*</span>
                     </label>
                     <div class="relative">
-                        <select name="product_unit_id" class="w-full h-10 rounded-lg border-2 border-gray-200 px-2.5 pr-8 appearance-none text-sm text-gray-900 transition-all duration-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-100 focus:outline-none hover:border-gray-300" required>
+                        <select name="product_unit_id"id="product_unit_id" class="w-full h-10 rounded-lg border-2 border-gray-200 px-2.5 pr-8 appearance-none text-sm text-gray-900 transition-all duration-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-100 focus:outline-none hover:border-gray-300" required>
                             <option value="">Choose product unit…</option>
-                            @if(!empty($units) && is_array($units))
+                            @if($units->count())
                                 @foreach($units as $unit)
-                                    @if(is_array($unit) && isset($unit['id']) && isset($unit['name']))
-                                        <option value="{{ $unit['id'] }}" {{ old('product_unit_id')==$unit['id'] ? 'selected' : '' }}>{{ $unit['name'] }}</option>
-                                    @endif
+                                    <option value="{{ $unit->id }}">{{ $unit->ShortName }}</option>
                                 @endforeach
                             @endif
+
+
                         </select>
                         <div class="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -400,15 +447,19 @@
                         <span class="font-medium">Required fields</span> are marked with <span class="text-red-500 font-bold">*</span>
                     </div>
                     <div class="flex items-center space-x-4">
-                        <button type="button" class="px-4 py-2 rounded-lg border-2 border-gray-200 text-gray-700 text-sm font-semibold hover:border-gray-300 hover:bg-gray-50 transition-all duration-200">
+                        <a href="{{ route('products.index') }}" class="px-4 py-2 rounded-lg border-2 border-gray-200 text-gray-700 text-sm font-semibold hover:border-gray-300 hover:bg-gray-50 transition-all duration-200">
                             Cancel
-                        </button>
-                        <button type="submit" class="inline-flex items-center space-x-2 px-6 py-2 rounded-lg bg-gradient-to-r from-violet-600 to-purple-600 text-white text-sm font-semibold shadow-md hover:from-violet-700 hover:to-purple-700 hover:shadow-lg transition-all duration-200">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                            </svg>
-                            <span>Create Product</span>
-                </button>
+                        </a>
+                        <div class="sticky bottom-0 left-0 right-0 z-50 bg-violet-50 border-t border-gray-200 px-6 py-4 flex justify-end">
+<button type="submit" class="inline-flex items-center gap-2 px-5 py-2 rounded-lg text-white bg-[#9b5de5] hover:bg-[#8c4bd4] transition">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 fill-current" viewBox="0 0 512 512"><path d="M256 0C114.615 0 0 114.615 0 256s114.615 256 256 256 256-114.615 256-256S397.385 0 256 0zm0 482C132.487 482 30 379.513 30 256S132.487 30 256 30s226 102.487 226 226-102.487 226-226 226z"/><path d="M378.305 173.897l-162.798 162.8-81.803-81.802c-5.857-5.858-15.355-5.858-21.213 0s-5.858 15.355 0 21.213l92.414 92.414c2.929 2.93 6.768 4.394 10.606 4.394s7.677-1.465 10.606-4.394l173.404-173.403c5.858-5.858 5.858-15.355 0-21.213-5.857-5.858-15.355-5.858-21.213 0z"/></svg>
+    Submit
+</button>
+
+</div>
+
+                        
+
                     </div>
                 </div>
             </div>
@@ -469,7 +520,8 @@
             <div id="preview" class="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
         </div>
     </div>
-    </div>
+   
+
 </form>
 @endsection
 
@@ -500,30 +552,59 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
     
-    // Barcode generator via button: prefix PRD + random digits
+    // Barcode generator: PRD + 9 random digits
     function generateRandomBarcode() {
+        // Find the code input field
         const codeInput = document.querySelector('input[name="code"]');
-        if (!codeInput) return;
+        if (!codeInput) {
+            console.error('Code input field not found!');
+            return;
+        }
 
+        // Generate PRD + 9 random digits
         const prefix = 'PRD';
-        const totalLen = 12; // e.g., PRD + 9 digits
-        const digitsNeeded = Math.max(1, totalLen - prefix.length);
         let digits = '';
-        for (let i = 0; i < digitsNeeded; i++) {
+        for (let i = 0; i < 9; i++) {
             digits += Math.floor(Math.random() * 10).toString();
         }
-        const value = prefix + digits;
+        const barcode = prefix + digits;
 
-        codeInput.value = value;
+        // Set the value
+        codeInput.value = barcode;
+        
         // Visual feedback
-        codeInput.classList.add('ring-2','ring-violet-200','border-violet-400');
-        setTimeout(()=>{
-            codeInput.classList.remove('ring-2','ring-violet-200','border-violet-400');
-        }, 700);
+        codeInput.style.borderColor = '#8B5CF6';
+        codeInput.style.backgroundColor = '#F3F4F6';
+        setTimeout(() => {
+            codeInput.style.borderColor = '';
+            codeInput.style.backgroundColor = '';
+        }, 1000);
+        
+        // Focus on the input
+        codeInput.focus();
     }
     
     // Make function globally available (triggered by clicking the barcode icon)
     window.generateRandomBarcode = generateRandomBarcode;
+
+    // Keyboard shortcut for barcode generation (Ctrl+G)
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.key === 'g') {
+            e.preventDefault();
+            generateRandomBarcode();
+        }
+    });
+
+    // Alternative event listener for barcode button
+    document.addEventListener('DOMContentLoaded', function() {
+        const barcodeButton = document.querySelector('button[onclick="generateRandomBarcode()"]');
+        if (barcodeButton) {
+            barcodeButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                generateRandomBarcode();
+            });
+        }
+    });
 
     // Do not auto-generate on load; keep empty by default. Use the button to generate when needed.
     
@@ -583,7 +664,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const chip = document.createElement('span');
             chip.dataset.chip = '1';
             chip.className = 'inline-flex items-center gap-1 bg-violet-50 text-violet-700 border border-violet-200 px-2 py-0.5 rounded-full text-xs';
-            chip.innerHTML = `<span>${opt.name}</span>`;
+            chip.innerHTML = <span>${opt.name}</span>;
             const closeBtn = document.createElement('button');
             closeBtn.type = 'button';
             closeBtn.className = 'text-violet-600 hover:text-violet-800';
@@ -650,7 +731,3 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endpush
-
-
-
-

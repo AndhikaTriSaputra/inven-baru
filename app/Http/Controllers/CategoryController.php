@@ -70,7 +70,7 @@ class CategoryController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Category $category): RedirectResponse
+    public function update(Request $request, Category $category)
     {
         $validated = $request->validate([
             'name' => ['required','string','max:255'],
@@ -83,15 +83,24 @@ class CategoryController extends Controller
             'updated_at' => now(),
         ]);
 
+        if ($request->wantsJson()) {
+            return response()->json(['category' => ['id' => $category->id, 'name' => $validated['name'], 'code' => $validated['code'] ?? null]]);
+        }
+
         return redirect()->route('categories.index')->with('ok','Category updated');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Category $category): RedirectResponse
+    public function destroy(Request $request, Category $category)
     {
         DB::table('categories')->where('id',$category->id)->delete();
+        
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Category deleted']);
+        }
+        
         return redirect()->route('categories.index')->with('ok','Category deleted');
     }
 }

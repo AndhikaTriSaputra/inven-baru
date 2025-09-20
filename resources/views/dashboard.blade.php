@@ -1,3 +1,5 @@
+dashboard.blade.php
+
 @extends('layouts.app')
 @section('content')
 
@@ -40,10 +42,15 @@
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-5">
-  <div class="card p-6 lg:col-span-2">
+  <div class="card pt-6 pb-6 px-6 lg:col-span-2 rounded-2xl shadow-sm">
     <div class="mb-3 font-medium">This Week</div>
-    <canvas id="purchasesChart" height="120"></canvas>
+    <div class="chart-wrapper">
+      <div class="chart-container">
+        <canvas id="purchasesChart"></canvas>
+      </div>
+    </div>
   </div>
+
 
   <div class="card p-6 overflow-auto">
     <div class="mb-3 font-medium">Recent Purchase</div>
@@ -55,34 +62,137 @@
   {{-- filter + tabel warehouse products (punyamu) --}}
 </div>
 
+@push('styles')
+<style>
+  .chart-wrapper {
+    height: 150px !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    position: relative !important;
+  }
+  .chart-container {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    height: 150px !important;
+    width: 100% !important;
+  }
+  #purchasesChart {
+    width: 100% !important;
+    height: 150px !important;
+    max-width: 100% !important;
+    max-height: 150px !important;
+    display: block !important;
+  }
+</style>
+@endpush
+
 @push('scripts')
 <script>
   const ctx = document.getElementById('purchasesChart');
-  if (ctx) {
-    new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: @json($chart['labels']),
-        datasets: [{
-          label: 'Purchases',
-          data: @json($chart['series']),
-          borderColor: '#7c3aed',
-          backgroundColor: 'rgba(124,58,237,.08)',
-          fill: true,
-          tension: .35,
-          pointRadius: 0
-        }]
+if (ctx) {
+  // Set canvas size explicitly
+  ctx.width = ctx.offsetWidth;
+  ctx.height = 150;
+  
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: @json($chart['labels']),
+      datasets: [{
+        label: 'Purchases',
+        data: @json($chart['series']),
+        borderColor: '#7c3aed',
+        backgroundColor: 'rgba(124,58,237,.08)',
+        fill: true,
+        tension: .35,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        pointBackgroundColor: '#7c3aed',
+        pointBorderColor: '#ffffff',
+        pointBorderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      aspectRatio: 3,
+      layout: {
+        padding: {
+          top: 0,
+          bottom: 0,
+          left: 0,
+          right: 0
+        }
       },
-      options: {
-        responsive: true,
-        plugins:{ legend:{ display:true, labels:{ color:'#475569' }}},
-        scales:{
-          y:{ beginAtZero:true, grid:{ color:'#eef2ff' }, ticks:{ color:'#64748b' } },
-          x:{ grid:{ display:false }, ticks:{ color:'#c7cce8', maxRotation:0 } }
+      devicePixelRatio: 1,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          align: 'end',
+          labels: { 
+            color: '#475569',
+            font: {
+              size: 8
+            },
+            padding: 1,
+            boxWidth: 8
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          suggestedMax: {{ $chart['max'] }},
+          grid: { 
+            color: '#eef2ff',
+            drawBorder: false
+          },
+          ticks: { 
+            color: '#64748b',
+            font: {
+              size: 7
+            },
+            padding: 1,
+            maxTicksLimit: 3
+          }
+        },
+        x: {
+          grid: { display: false },
+          ticks: {
+            color: '#64748b',
+            font: {
+              size: 7
+            },
+            maxRotation: 0,
+            padding: 1,
+            maxTicksLimit: 7,
+            callback: function(value, index, values) {
+              const date = new Date(this.getLabelForValue(value));
+              return date.toLocaleDateString('id-ID', { 
+                day: '2-digit', 
+                month: '2-digit' 
+              });
+            }
+          }
+        }
+      },
+      interaction: {
+        intersect: false,
+        mode: 'index'
+      },
+      elements: {
+        point: {
+          radius: 1,
+          hoverRadius: 3
         }
       }
-    });
-  }
+    }
+  });
+}
 </script>
 @endpush
 @endsection
