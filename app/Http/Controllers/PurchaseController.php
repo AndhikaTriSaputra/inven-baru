@@ -7,6 +7,7 @@ use App\Models\Purchase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Auth;
 
 class PurchaseController extends Controller
 {
@@ -26,7 +27,21 @@ class PurchaseController extends Controller
             ->orderByDesc('pu.date')
             ->paginate(10);
 
-        return view('purchases.index', compact('purchases'));
+        // Get supplier options for filter
+        $supplierOptions = \DB::table('providers')
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->pluck('name', 'id')
+            ->toArray();
+
+        // Get warehouse options for filter
+        $warehouseOptions = \DB::table('warehouses')
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->pluck('name', 'id')
+            ->toArray();
+
+        return view('purchases.index', compact('purchases', 'supplierOptions', 'warehouseOptions'));
     }
 
     public function create()
@@ -137,7 +152,7 @@ foreach ($validated['items'] as $item) {
             }
 
             $purchaseId = DB::table('purchases')->insertGetId([
-    'user_id' => auth()->check() ? auth()->id() : 1, // Use authenticated user or default to 1
+    'user_id' => Auth::check() ? Auth::id() : 1, // Use authenticated user or default to 1
     'Ref' => 'PR_' . substr(uniqid(), -6),
     'date' => $validated['date'],
     'provider_id' => $validated['provider_id'],
@@ -196,26 +211,19 @@ public function exportPdf()
 
 public function exportPurchasePdf($id)
 {
-    $purchase = \DB::table('purchases')->where('id', $id)->first();
-        $details = DB::table('purchase_details as pd')
+    $purchase = DB::table('purchases')->where('id', $id)->first();
+    $details = DB::table('purchase_details as pd')
         ->leftJoin('products as p', 'p.id', '=', 'pd.product_id')
         ->leftJoin('units as u', 'u.id', '=', 'pd.purchase_unit_id')
         ->select('pd.*', 'p.name as product_name', 'p.code as product_code', 'u.ShortName as unit')
         ->where('pd.purchase_id', $id)
-            ->get();
+        ->get();
 
     $provider = DB::table('providers')->where('id', $purchase->provider_id)->first();
     $warehouse = DB::table('warehouses')->where('id', $purchase->warehouse_id)->first();
 
-    $html = view('purchases.print', compact('purchase', 'details', 'provider', 'warehouse'))->render();
-    
-    // Use DomPDF to generate actual PDF
-    $dompdf = new \Dompdf\Dompdf();
-            $dompdf->loadHtml($html);
-            $dompdf->setPaper('A4', 'portrait');
-            $dompdf->render();
-    
-    return $dompdf->stream('purchase-' . $purchase->Ref . '.pdf', ['Attachment' => true]);
+    // For now, return HTML view until DomPDF is properly configured
+    return view('purchases.print', compact('purchase', 'details', 'provider', 'warehouse'));
 }
 
 public function exportExcel()
@@ -322,64 +330,48 @@ public function exportExcel()
     //     return redirect()->route('purchases.index')->with('ok','Purchase updated');
     // }
 
-    public function update(Request $request, Purchase $purchase)
+    public function update(Request $request, $id)
     {
         $request->validate([
-    'date' => 'required|date',
-    'provider_id' => 'required|exists:providers,id',
-    'warehouse_id' => 'required|exists:warehouses,id',
-    'category_id' => 'nullable|exists:categories,id',
-    'status' => 'nullable|in:received,pending,ordered', // ✅ Tambahkan ini
-    'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-]);
+            'date' => 'required|date',
+            'provider_id' => 'required|exists:providers,id',
+            'warehouse_id' => 'required|exists:warehouses,id',
+            'notes' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
 
+        $data = [
+            'date' => $request->date,
+            'provider_id' => $request->provider_id,
+            'warehouse_id' => $request->warehouse_id,
+            'notes' => $request->notes,
+            'updated_at' => now(),
+        ];
 
-    $data = $request->only(['date', 'provider_id', 'warehouse_id', 'notes', 'category_id']);
-    $data['statut'] = $request->input('status', 'received');
+        // Handle image upload
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+            @mkdir(public_path('images/purchases'), 0755, true);
+            $image->move(public_path('images/purchases'), $imageName);
+            $data['image'] = $imageName;
+        }
 
+        DB::table('purchases')->where('id', $id)->update($data);
 
-    // Hapus gambar lama jika diminta
-    if ($request->has('remove_image') && $purchase->image) {
-        Storage::delete('public/images/purchases/' . $purchase->image);
-        $data['image'] = null;
+        return redirect()->route('purchases.index')->with('success', 'Purchase updated successfully');
     }
-
-    // Upload gambar baru jika ada
-   // Upload gambar baru jika ada
-// if ($request->hasFile('image')) {
-//     // Hapus dulu gambar lama kalau ada
-//     if ($purchase->image) {
-//         Storage::delete('public/images/purchases/' . $purchase->image);
-//     }
-
-//     $file = $request->file('image');
-//     $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-//     $file->storeAs('public/images/purchases', $filename); // simpan ke storage/app/public/images/purchases
-//     $data['image'] = $filename;
-// }
-if ($request->hasFile('image')) {
-    $image = $request->file('image');
-    $imageName = time() . '_' . $image->getClientOriginalName();
-    $image->move(public_path('images/purchases'), $imageName);
-    $purchase->image = $imageName; // Simpan nama file saja
-}
-
-
-    $purchase->update($data);
-
-    return redirect()->route('purchases.index')->with('success', 'Purchase updated successfully');
-}
 
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Purchase $purchase)
+    public function destroy($id)
     {
-        DB::transaction(function () use ($purchase) {
-            DB::table('purchase_details')->where('purchase_id',$purchase->id)->delete();
-            DB::table('purchases')->where('id',$purchase->id)->delete();
+        DB::transaction(function () use ($id) {
+            DB::table('purchase_details')->where('purchase_id', $id)->delete();
+            DB::table('purchases')->where('id', $id)->delete();
         });
-        return redirect()->route('purchases.index')->with('ok','Purchase deleted');
+        return redirect()->route('purchases.index')->with('success', 'Purchase deleted successfully');
     }
 }

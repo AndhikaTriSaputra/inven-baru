@@ -55,7 +55,7 @@
                             </div>
                         </div>
                         <span class="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600">
-                            0 {{ $product->unit_name ?? 'pcs' }}
+                            {{ $product->stock ?? 0 }} {{ $product->unit_name ?? 'pcs' }}
                         </span>
     </div>
 
@@ -66,7 +66,7 @@
                         </div>
                         <div class="text-xs">
                             <span class="text-gray-500">Price:</span>
-                            <span class="font-semibold">Rp 0</span>
+                            <span class="font-semibold">Rp {{ number_format($product->price ?? 0, 0, ',', '.') }}</span>
                         </div>
                         @if($product->brand_name)
                         <div class="text-xs">
@@ -138,7 +138,12 @@ function clearSelection() {
 function printLabels() {
     const selectedProducts = [];
     document.querySelectorAll('.product-checkbox:checked').forEach(checkbox => {
-        selectedProducts.push(JSON.parse(checkbox.dataset.product));
+        try {
+            const productData = JSON.parse(checkbox.dataset.product);
+            selectedProducts.push(productData);
+        } catch (e) {
+            console.error('Error parsing product data:', e);
+        }
     });
 
     if (selectedProducts.length === 0) {
@@ -162,12 +167,8 @@ function printLabels() {
         return;
     }
 
-    // Create print content
-    const printContent = createPrintContent(filteredProducts, labelSize);
-    
-    // Open print window
     const printWindow = window.open('', '_blank');
-    printWindow.document.write(printContent);
+    printWindow.document.write(generateLabelHTML(filteredProducts, labelSize));
     printWindow.document.close();
     printWindow.print();
 }

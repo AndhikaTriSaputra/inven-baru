@@ -363,3 +363,6 @@ document.getElementById('searchInput').addEventListener('input', function() {
 });
 </script>
 @endsection
+
+
+

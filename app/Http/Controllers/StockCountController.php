@@ -52,3 +52,6 @@ class StockCountController extends Controller
         }
     }
 }
+
+
+

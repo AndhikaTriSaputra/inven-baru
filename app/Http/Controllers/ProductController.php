@@ -212,9 +212,9 @@ public function create()
 
 
     /** Show a product */
-    public function show(int $id): View
+    public function show($id): View
     {
-        $product = DB::table('products')->where('id',$id)->first();
+        $product = DB::table('products')->where('id', (int)$id)->first();
         abort_if(!$product, 404);
         return view('products.show', compact('product'));
     }

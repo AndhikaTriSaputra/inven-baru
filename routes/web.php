@@ -15,95 +15,101 @@ use App\Http\Controllers\UnitController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\LabelController;
 use App\Http\Controllers\StockCountController;
+use Illuminate\Support\Facades\Schema;
 
 // kalau akses root, redirect ke dashboard
+
 Route::get('/', function () {
-    return 'Welcome to Inventory System!';
+    return redirect()->route('dashboard');
 });
+
+// Route::get('/', function () {
+//     // return 'Welcome to Inventory System!';
+// });
 
 // Test routes outside middleware
-Route::get('/test-labels', function() {
-    return '<h1>Print Labels Test</h1><p>Route is working!</p>';
-});
+// Route::get('/test-labels', function() {
+//     return '<h1>Print Labels Test</h1><p>Route is working!</p>';
+// });
 
-Route::get('/test-stock-count', function() {
-    return '<h1>Count Stock Test</h1><p>Route is working!</p>';
-});
+// Route::get('/test-stock-count', function() {
+//     return '<h1>Count Stock Test</h1><p>Route is working!</p>';
+// });
 
-Route::get('/test-view', function() {
-    return view('label-print.index', ['products' => collect([])]);
-});
+// Route::get('/test-view', function() {
+//     return view('label-print.index', ['products' => collect([])]);
+// });
 
-Route::get('/test-stock-view', function() {
-    return view('stock-count.index', ['products' => collect([])]);
-});
+// Route::get('/test-stock-view', function() {
+//     return view('stock-count.index', ['products' => collect([])]);
+// });
 
-Route::get('/test-labels-simple', function() {
-    return view('products.labels', ['products' => collect([])]);
-});
+// Route::get('/test-labels-simple', function() {
+//     return view('products.labels', ['products' => collect([])]);
+// });
 
-Route::get('/test-stock-simple', function() {
-    return view('products.stock-count', ['products' => collect([])]);
-});
+// Route::get('/test-stock-simple', function() {
+//     return view('products.stock-count', ['products' => collect([])]);
+// });
 
-Route::get('/labels-test', function() {
-    return '<h1>Print Labels Test (No Auth)</h1><p>This should work without authentication!</p>';
-});
+// Route::get('/labels-test', function() {
+//     return '<h1>Print Labels Test (No Auth)</h1><p>This should work without authentication!</p>';
+// });
 
-Route::get('/stock-test', function() {
-    return '<h1>Count Stock Test (No Auth)</h1><p>This should work without authentication!</p>';
-});
+// Route::get('/stock-test', function() {
+//     return '<h1>Count Stock Test (No Auth)</h1><p>This should work without authentication!</p>';
+// });
 
-// Simple test routes
-Route::get('/test', function () {
-    return 'Test route working!';
-});
+// // Simple test routes
+// Route::get('/test', function () {
+//     return 'Test route working!';
+// });
 
-Route::get('/dashboard', function () {
-    return 'Dashboard working!';
-});
+// Route::get('/dashboard', function () {
+//     return 'Dashboard working!';
+// });
 
-Route::get('/app/dashboard', function () {
-    return 'App Dashboard working!';
-});
+// Route::get('/app/dashboard', function () {
+//     return 'App Dashboard working!';
+// });
 
-// Test routes outside middleware
-Route::get('/test-pdf', function() {
-    return 'PDF Test Route Working';
-});
-Route::get('/test-excel', function() {
-    return 'Excel Test Route Working';
-});
-Route::get('/test-purchases-pdf', function() {
-    return 'Purchases PDF Test Working';
-});
-Route::get('/test-purchases-excel', function() {
-    return 'Purchases Excel Test Working';
-});
+// // Test routes outside middleware
+// Route::get('/test-pdf', function() {
+//     return 'PDF Test Route Working';
+// });
+// Route::get('/test-excel', function() {
+//     return 'Excel Test Route Working';
+// });
+// Route::get('/test-purchases-pdf', function() {
+//     return 'Purchases PDF Test Working';
+// });
+// Route::get('/test-purchases-excel', function() {
+//     return 'Purchases Excel Test Working';
+// });
 
-// Simple export routes outside middleware
-Route::get('/export-pdf', function() {
-    return 'PDF Export Working';
-});
-Route::get('/export-excel', function() {
-    return 'Excel Export Working';
-});
+// // Simple export routes outside middleware
+// Route::get('/export-pdf', function() {
+//     return 'PDF Export Working';
+// });
+// Route::get('/export-excel', function() {
+//     return 'Excel Export Working';
+// });
 
-// Test routes for products outside middleware
-Route::get('/test-labels', function() {
-    return response()->json(['message' => 'Test Labels Working!']);
-});
-Route::get('/test-stock-count', function() {
-    return response()->json(['message' => 'Test Stock Count Working!']);
-});
+// // Test routes for products outside middleware
+// Route::get('/test-labels', function() {
+//     return response()->json(['message' => 'Test Labels Working!']);
+// });
+// Route::get('/test-stock-count', function() {
+//     return response()->json(['message' => 'Test Stock Count Working!']);
+// });
 
-// Products routes outside middleware for testing
-Route::get('/products-labels', function() {
-    return response()->json(['message' => 'Products Labels Working!']);
-});
-Route::get('/products-stock-count', function() {
-    return response()->json(['message' => 'Products Stock Count Working!']);
-});
+// // Products routes outside middleware for testing
+// Route::get('/products-labels', function() {
+//     return response()->json(['message' => 'Products Labels Working!']);
+// });
+// Route::get('/products-stock-count', function() {
+//     return response()->json(['message' => 'Products Stock Count Working!']);
+// });
 
 // route auth
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -136,23 +142,90 @@ Route::middleware('auth')->prefix('app')->group(function () {
         return view('settings.index');
     })->name('settings.index');
 
-    // products
-    Route::resource('products', ProductController::class);
-    // brands
-    Route::resource('brands', BrandController::class);
+    // products - specific routes first before resource
+    Route::get('/products/labels', function() {
+        try {
+            $products = DB::table('products')
+                ->leftJoin('product_warehouse', 'product_warehouse.product_id', '=', 'products.id')
+                ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.brand_id')
+                ->leftJoin('units', 'units.id', '=', 'products.unit_id')
+                ->select(
+                    'products.id',
+                    'products.name',
+                    'products.code',
+                    'products.price',
+                    DB::raw('COALESCE(SUM(product_warehouse.qte), 0) as stock'),
+                    'categories.name as category_name',
+                    'brands.name as brand_name',
+                    'units.name as unit_name'
+                )
+                ->groupBy('products.id', 'products.name', 'products.code', 'products.price', 'categories.name', 'brands.name', 'units.name')
+                ->orderBy('products.name')
+                ->get();
+            
+            // Add default values for missing fields
+            $products = $products->map(function($product) {
+                return (object) [
+                    'id' => $product->id,
+                    'name' => $product->name ?? 'Unknown Product',
+                    'code' => $product->code ?? 'N/A',
+                    'sku' => $product->code ?? 'N/A',
+                    'price' => $product->price ?? 0,
+                    'stock' => $product->stock ?? 0,
+                    'category_name' => $product->category_name ?? 'General',
+                    'brand_name' => $product->brand_name ?? 'No Brand',
+                    'unit_name' => $product->unit_name ?? 'pcs'
+                ];
+            });
+            
+            return view('products.labels-standalone', compact('products'));
+            
+        } catch (\Exception $e) {
+            \Log::error('Labels route error: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    })->name('products.labels');
+    
+    Route::get('/products/stock-count', function() {
+        try {
+            $products = DB::table('products')
+                ->leftJoin('product_warehouse', 'product_warehouse.product_id', '=', 'products.id')
+                ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
+                ->leftJoin('brands', 'brands.id', '=', 'products.brand_id')
+                ->leftJoin('units', 'units.id', '=', 'products.unit_id')
+                ->select(
+                    'products.id',
+                    'products.name',
+                    'products.code',
+                    'products.price',
+                    DB::raw('COALESCE(SUM(product_warehouse.qte), 0) as stock'),
+                    'categories.name as category_name',
+                    'brands.name as brand_name',
+                    'units.name as unit_name'
+                )
+                ->groupBy('products.id', 'products.name', 'products.code', 'products.price', 'categories.name', 'brands.name', 'units.name')
+                ->orderBy('products.name')
+                ->get();
+            
+            return view('products.stock-count', compact('products'));
+        } catch (\Exception $e) {
+            \Log::error('Stock count route error: ' . $e->getMessage());
+            return view('products.stock-count', ['products' => collect([])]);
+        }
+    })->name('products.stock_count');
+    
     Route::get('/products/export/pdf', [ProductController::class, 'exportPdf'])->name('products.export.pdf');
     Route::get('/products/export/excel', [ProductController::class, 'exportExcel'])->name('products.export.excel');
     Route::get('/products/search', [ProductController::class, 'search'])->name('products.search');
     Route::post('/products/approve', [ProductController::class, 'approve'])->name('products.approve');
     Route::post('/products/import', [ProductController::class, 'import'])->name('products.import');
     Route::get('/products/{product}/barcode', [ProductController::class, 'barcode'])->name('products.barcode');
-    Route::get('/products/labels', function() {
-        return '<h1>Print Labels Page</h1><p>Route is working!</p><a href="/app/products">Back to Products</a>';
-    })->name('products.labels');
     
-    Route::get('/products/stock-count', function() {
-        return '<h1>Count Stock Page</h1><p>Route is working!</p><a href="/app/products">Back to Products</a>';
-    })->name('products.stock_count');
+    // products resource route (must be last)
+    Route::resource('products', ProductController::class);
+    // brands
+    Route::resource('brands', BrandController::class);
 
     // warehouses
     Route::resource('warehouses', WarehouseController::class);

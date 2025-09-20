@@ -1,4 +1,4 @@
-create purchases
+
 
 @extends('layouts.app')
 
@@ -38,148 +38,86 @@ Create Purchase
             </div> -->
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Date <span class="text-red-500">*</span></label>
-        <input type="date" name="date" value="{{ old('date', now()->format('Y-m-d')) }}" class="w-full border rounded-lg px-3 py-2">
-    </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Date <span class="text-red-500">*</span></label>
+                    <input type="date" name="date" value="{{ old('date', now()->format('Y-m-d')) }}" class="w-full border rounded-lg px-3 py-2">
+                </div>
 
-    <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Supplier <span class="text-red-500">*</span></label>
-        <select name="provider_id" class="w-full border rounded-lg px-3 py-2">
-            <option value="">Choose Supplier</option>
-            @foreach($providers as $p)
-                <option value="{{ $p->id }}" @selected(old('provider_id')==$p->id)>{{ $p->name }}</option>
-            @endforeach
-        </select>
-    </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Supplier <span class="text-red-500">*</span></label>
+                    <select name="provider_id" class="w-full border rounded-lg px-3 py-2">
+                        <option value="">Choose Supplier</option>
+                        @foreach($providers as $p)
+                            <option value="{{ $p->id }}" @selected(old('provider_id')==$p->id)>{{ $p->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
 
-    <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Warehouse <span class="text-red-500">*</span></label>
-        <select id="warehouse_id" name="warehouse_id" class="w-full border rounded-lg px-3 py-2">
-            <option value="">Choose Warehouse</option>
-            @foreach($warehouses as $w)
-                <option value="{{ $w->id }}" @selected(old('warehouse_id')==$w->id)>{{ $w->name }}</option>
-            @endforeach
-        </select>
-    </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Warehouse <span class="text-red-500">*</span></label>
+                    <select id="warehouse_id" name="warehouse_id" class="w-full border rounded-lg px-3 py-2">
+                        <option value="">Choose Warehouse</option>
+                        @foreach($warehouses as $w)
+                            <option value="{{ $w->id }}" @selected(old('warehouse_id')==$w->id)>{{ $w->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
 
-    <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Brand</label>
-        <select name="brand_id" class="w-full border rounded-lg px-3 py-2">
-            <option value="">Choose Brand</option>
-            @foreach ($brands as $brand)
-                <option value="{{ $brand->id }}" @selected(old('brand_id') == $brand->id)>{{ $brand->name }}</option>
-            @endforeach
-        </select>
-    </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Brand</label>
+                    <select name="brand_id" class="w-full border rounded-lg px-3 py-2">
+                        <option value="">Choose Brand</option>
+                        @foreach ($brands as $brand)
+                            <option value="{{ $brand->id }}" @selected(old('brand_id') == $brand->id)>{{ $brand->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
 
-    @if (isset($projects) && $projects->count())
-    <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Project</label>
-        <select name="project_id" class="w-full border rounded-lg px-3 py-2">
-            <option value="">Choose Project</option>
-            @foreach ($projects as $proj)
-                <option value="{{ $proj->id }}" @selected(old('project_id') == $proj->id)>{{ $proj->name }}</option>
-            @endforeach
-        </select>
-    </div>
-    @endif
+                @if (isset($projects) && $projects->count())
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Project</label>
+                    <select name="project_id" class="w-full border rounded-lg px-3 py-2">
+                        <option value="">Choose Project</option>
+                        @foreach ($projects as $proj)
+                            <option value="{{ $proj->id }}" @selected(old('project_id') == $proj->id)>{{ $proj->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
 
-    <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Product Type</label>
-        <select name="type" class="w-full border rounded-lg px-3 py-2">
-            <option value="">Choose Type</option>
-            @foreach ($types as $t)
-                <option value="{{ $t }}" @selected(old('type') == $t)>{{ $t }}</option>
-            @endforeach
-        </select>
-    </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Product Type</label>
+                    <select name="type" class="w-full border rounded-lg px-3 py-2">
+                        <option value="">Choose Type</option>
+                        @foreach ($types as $t)
+                            <option value="{{ $t }}" @selected(old('type') == $t)>{{ $t }}</option>
+                        @endforeach
+                    </select>
+                </div>
 
-    <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Barcode Symbology</label>
-        <select name="barcode_symbology" class="w-full border rounded-lg px-3 py-2">
-            <option value="">Choose Barcode</option>
-            @foreach ($barcode_types as $btype)
-                <option value="{{ strtolower(str_replace(' ', '', $btype)) }}" @selected(old('barcode_symbology') == strtolower(str_replace(' ', '', $btype)))>{{ $btype }}</option>
-            @endforeach
-        </select>
-    </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Barcode Symbology</label>
+                    <select name="barcode_symbology" class="w-full border rounded-lg px-3 py-2">
+                        <option value="">Choose Barcode</option>
+                        @foreach ($barcode_types as $btype)
+                            <option value="{{ strtolower(str_replace(' ', '', $btype)) }}" @selected(old('barcode_symbology') == strtolower(str_replace(' ', '', $btype)))>{{ $btype }}</option>
+                        @endforeach
+                    </select>
+                </div>
 
-    <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Category <span class="text-red-500">*</span></label>
-        <select name="category_id" class="w-full border rounded-lg px-3 py-2" required>
-            <option value="">Choose Category</option>
-            @foreach($categories as $c)
-                <option value="{{ $c->id }}" @selected(old('category_id')==$c->id)>{{ $c->name }}</option>
-            @endforeach
-        </select>
-        @error('category_id')
-            <div class="text-sm text-red-600 mt-1">{{ $message }}</div>
-        @enderror
-    </div>
-</div>
-
-
-            <div>
-    <label class="block text-sm font-medium text-gray-700 mb-1">Brand</label>
-    <select name="brand_id" class="w-full border rounded-lg px-3 py-2">
-        <option value="">Choose Brand</option>
-        @foreach ($brands as $brand)
-            <option value="{{ $brand->id }}" @selected(old('brand_id') == $brand->id)>{{ $brand->name }}</option>
-        @endforeach
-    </select>
-</div>
-
-@if (isset($projects) && $projects->count())
-<div>
-    <label class="block text-sm font-medium text-gray-700 mb-1">Project</label>
-    <select name="project_id" class="w-full border rounded-lg px-3 py-2">
-        <option value="">Choose Project</option>
-        @foreach ($projects as $proj)
-            <option value="{{ $proj->id }}" @selected(old('project_id') == $proj->id)>{{ $proj->name }}</option>
-        @endforeach
-    </select>
-</div>
-@endif
-
-<div>
-    <label class="block text-sm font-medium text-gray-700 mb-1">Product Type</label>
-    <select name="type" class="w-full border rounded-lg px-3 py-2">
-        <option value="">Choose Type</option>
-        @foreach ($types as $t)
-            <option value="{{ $t }}" @selected(old('type') == $t)>{{ $t }}</option>
-        @endforeach
-    </select>
-</div>
-
-<div>
-    <label class="block text-sm font-medium text-gray-700 mb-1">Barcode Symbology</label>
-    <select name="barcode_symbology" class="w-full border rounded-lg px-3 py-2">
-        <option value="">Choose Barcode</option>
-        @foreach ($barcode_types as $btype)
-            <option value="{{ strtolower(str_replace(' ', '', $btype)) }}" @selected(old('barcode_symbology') == strtolower(str_replace(' ', '', $btype)))>{{ $btype }}</option>
-        @endforeach
-    </select>
-</div>
-
-
-            <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">
-        Category <span class="text-red-500">*</span>
-      </label>
-      <select name="category_id" class="w-full border rounded-lg px-3 py-2" required>
-          <option value="">Choose Category</option>
-          @foreach($categories as $c)
-            <option value="{{ $c->id }}" @selected(old('category_id')==$c->id)>
-              {{ $c->name }}
-            </option>
-          @endforeach
-      </select>
-      @error('category_id')
-        <div class="text-sm text-red-600 mt-1">{{ $message }}</div>
-      @enderror
-    </div>
-</div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Category <span class="text-red-500">*</span></label>
+                    <select name="category_id" class="w-full border rounded-lg px-3 py-2" required>
+                        <option value="">Choose Category</option>
+                        @foreach($categories as $c)
+                            <option value="{{ $c->id }}" @selected(old('category_id')==$c->id)>{{ $c->name }}</option>
+                        @endforeach
+                    </select>
+                    @error('category_id')
+                        <div class="text-sm text-red-600 mt-1">{{ $message }}</div>
+                    @enderror
+                </div>
+            </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Product</label>
@@ -218,15 +156,13 @@ Create Purchase
         </div>
 
         <div>
-    <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-    <select name="status" class="w-full border rounded-lg px-3 py-2">
-        <option value="received" @selected(old('status') == 'received')>Received</option>
-        <option value="pending" @selected(old('status') == 'pending')>Pending</option>
-        <option value="ordered" @selected(old('status') == 'ordered')>Ordered</option>
-    </select>
-</div>
-
-        
+            <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <select name="status" class="w-full border rounded-lg px-3 py-2">
+                <option value="received" @selected(old('status') == 'received')>Received</option>
+                <option value="pending" @selected(old('status') == 'pending')>Pending</option>
+                <option value="ordered" @selected(old('status') == 'ordered')>Ordered</option>
+            </select>
+        </div>
 
         <div>
             <div class="border border-gray-200 rounded-xl p-4">
@@ -262,6 +198,7 @@ document.addEventListener('DOMContentLoaded', function(){
     const noItemsRow = document.getElementById('noItemsRow');
     const search = document.getElementById('productSearch');
     const results = document.getElementById('searchResults');
+    
 
     
 
@@ -274,8 +211,17 @@ document.addEventListener('DOMContentLoaded', function(){
             const code = (p.code||'').toLowerCase();
             return !query || name.includes(query) || code.includes(query);
         }).slice(0,50);
-        if (!filtered.length){ results.classList.add('hidden'); results.innerHTML = ''; return; }
-        results.innerHTML = filtered.map(p => <button type="button" data-id="${p.id}" class="w-full text-left px-3 py-2 hover:bg-violet-50"><div class="font-medium">${p.name}</div><div class="text-xs text-gray-500">${p.code||''}</div></button>).join('');
+        if (!filtered.length){ 
+            results.classList.add('hidden'); 
+            results.innerHTML = ''; 
+            return; 
+        }
+        results.innerHTML = filtered.map(p => 
+            '<button type="button" data-id="' + p.id + '" class="w-full text-left px-3 py-2 hover:bg-violet-50">' +
+                '<div class="font-medium">' + p.name + '</div>' +
+                '<div class="text-xs text-gray-500">' + (p.code || '') + '</div>' +
+            '</button>'
+        ).join('');
         results.classList.remove('hidden');
     }
 
@@ -299,40 +245,53 @@ document.addEventListener('DOMContentLoaded', function(){
         const rowIdx = Date.now().toString(36);
         const tr = document.createElement('tr');
         tr.setAttribute('data-row','1');
-        tr.innerHTML = `
-            <td class="px-3 py-2">•</td>
-            <td class="px-3 py-2">${product.name} <input type="hidden" name="items[${rowIdx}][product_id]" value="${product.id}"></td>
-            <td class="px-3 py-2"><span data-stock>—</span></td>
-            <td class="px-3 py-2"><input name="items[${rowIdx}][quantity]" type="number" step="0.0001" value="1" min="0.0001" class="w-24 border rounded px-2 py-1"></td>
-            <td class="px-3 py-2"><input name="items[${rowIdx}][cost]" type="number" step="0.01" value="0" min="0" class="w-28 border rounded px-2 py-1"></td>
-            <td class="px-3 py-2">
-                <select name="items[${rowIdx}][purchase_unit_id]" class="border rounded px-2 py-1">
-                    <option value="">-</option>
-                    ${units.map(u=><option value="${u.id}">${u.ShortName||u.name||'Unit'}</option>).join('')}
-                </select>
-            </td>
-            <td class="px-3 py-2"><button type="button" class="text-rose-600" data-remove>Remove</button></td>
-        `;
+        
+        // Build units options
+        const unitsOptions = units.map(u => 
+            '<option value="' + u.id + '">' + (u.ShortName || u.name || 'Unit') + '</option>'
+        ).join('');
+        
+        tr.innerHTML = 
+            '<td class="px-3 py-2">•</td>' +
+            '<td class="px-3 py-2">' + product.name + ' <input type="hidden" name="items[' + rowIdx + '][product_id]" value="' + product.id + '"></td>' +
+            '<td class="px-3 py-2"><span data-stock>—</span></td>' +
+            '<td class="px-3 py-2"><input name="items[' + rowIdx + '][quantity]" type="number" step="0.0001" value="1" min="0.0001" class="w-24 border rounded px-2 py-1"></td>' +
+            '<td class="px-3 py-2"><input name="items[' + rowIdx + '][cost]" type="number" step="0.01" value="0" min="0" class="w-28 border rounded px-2 py-1"></td>' +
+            '<td class="px-3 py-2">' +
+                '<select name="items[' + rowIdx + '][purchase_unit_id]" class="border rounded px-2 py-1">' +
+                    '<option value="">-</option>' +
+                    unitsOptions +
+                '</select>' +
+            '</td>' +
+            '<td class="px-3 py-2"><button type="button" class="text-rose-600" data-remove>Remove</button></td>';
+            
         itemsBody.appendChild(tr);
         fetchStock(product.id, tr.querySelector('[data-stock]'));
 
-        tr.querySelector('[data-remove]').addEventListener('click', ()=>{ tr.remove(); ensureNoRow(); });
+        tr.querySelector('[data-remove]').addEventListener('click', function(){ 
+            tr.remove(); 
+            ensureNoRow(); 
+        });
     }
 
     async function fetchStock(productId, el){
         const wh = document.getElementById('warehouse_id').value;
         if(!wh){ el.textContent='—'; return; }
         try{
-            const url = @json(route('adjustments.productStock')); // returns stock by product+warehouse if available in this app
-            const res = await fetch(${url}?product_id=${productId}&warehouse_id=${wh}, { headers:{'Accept':'application/json'} });
+            const url = @json(route('adjustments.productStock'));
+            const res = await fetch(url + '?product_id=' + productId + '&warehouse_id=' + wh, { 
+                headers: {'Accept': 'application/json'} 
+            });
             if(!res.ok) throw new Error('failed');
             const data = await res.json();
-            el.textContent = (data && typeof data.stock!== 'undefined') ? data.stock : '0';
-        }catch(e){ el.textContent='0'; }
+            el.textContent = (data && typeof data.stock !== 'undefined') ? data.stock : '0';
+        }catch(e){ 
+            el.textContent='0'; 
+        }
     }
 
-    document.getElementById('warehouse_id').addEventListener('change', ()=>{
-        itemsBody.querySelectorAll('tr[data-row]').forEach(tr=>{
+    document.getElementById('warehouse_id').addEventListener('change', function(){
+        itemsBody.querySelectorAll('tr[data-row]').forEach(function(tr){
             const pid = tr.querySelector('input[name$="[product_id]"]').value;
             fetchStock(pid, tr.querySelector('[data-stock]'));
         });
