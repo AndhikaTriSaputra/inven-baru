@@ -1,4 +1,4 @@
-show.blade.php
+
 
 @extends('layouts.app')
 
@@ -40,7 +40,7 @@ Purchase Detail
         </div>
         <div>
             <div class="text-sm font-semibold mb-2">Purchase Info</div>
-            <div class="text-xs text-gray-600">Reference : <span class="font-medium">{{ $purchase->Ref }}</span></div>
+            <div class="text-xs text-gray-600">Item : <span class="font-medium">{{ $purchase->Ref }}</span></div>
             <div class="text-xs text-gray-600">Status : <span class="inline-flex items-center px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">{{ ucfirst($purchase->statut ?? 'received') }}</span></div>
             @php $warehouse = DB::table('warehouses')->where('id',$purchase->warehouse_id)->first(); @endphp
             <div class="text-xs text-gray-600">Warehouse : <span class="font-medium">{{ $warehouse->name ?? '-' }}</span></div>

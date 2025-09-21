@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProductController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\UnitController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\LabelController;
 use App\Http\Controllers\StockCountController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Schema;
 
 // kalau akses root, redirect ke dashboard
@@ -34,6 +36,59 @@ Route::get('/lang/{locale}', function ($locale) {
     return back();
 })->name('lang.switch');
 
+// Test route for debugging (no auth required)
+Route::get('/test-search', function (Request $request) {
+    try {
+        $searchTerm = $request->get('q', '');
+        
+        if ($searchTerm === 'test') {
+            return response()->json([
+                ['id' => 1, 'name' => 'Test Product', 'code' => 'TEST001', 'price' => 100, 'stock' => 50, 'category_name' => 'Test', 'brand_name' => 'Test Brand', 'unit_name' => 'pcs']
+            ]);
+        }
+        
+        $products = DB::table('products')
+            ->select('id', 'name', 'code', 'price', 'stock')
+            ->where(function($query) use ($searchTerm) {
+                $query->where('name', 'like', '%' . $searchTerm . '%')
+                      ->orWhere('code', 'like', '%' . $searchTerm . '%');
+            })
+            ->limit(5)
+            ->get();
+            
+        // Add default values
+        $products = $products->map(function ($product) {
+            return [
+                'id' => $product->id,
+                'name' => $product->name ?? 'Unknown',
+                'code' => $product->code ?? 'N/A',
+                'price' => $product->price ?? 0,
+                'stock' => $product->stock ?? 0,
+                'category_name' => 'General',
+                'brand_name' => 'No Brand',
+                'unit_name' => 'pcs'
+            ];
+        });
+            
+        return response()->json($products);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+});
+
+// Redirect old product routes to new app routes
+Route::get('/products', function () {
+    return redirect()->route('products.index');
+})->middleware('auth');
+
+Route::get('/products/{id}', function ($id) {
+    return redirect()->route('products.show', $id);
+})->middleware('auth');
+
+Route::get('/products/{id}/edit', function ($id) {
+    return redirect()->route('products.edit', $id);
+})->middleware('auth');
+
 // semua route di bawah butuh login
 Route::middleware('auth')->prefix('app')->group(function () {
     // dashboard
@@ -45,9 +100,7 @@ Route::middleware('auth')->prefix('app')->group(function () {
     })->name('pos.index');
 
     // profile
-    Route::get('/profile', function () {
-        return view('profile.index');
-    })->name('profile.index');
+    Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'index'])->name('profile.index');
 
     // settings
     Route::get('/settings', function () {
@@ -57,74 +110,74 @@ Route::middleware('auth')->prefix('app')->group(function () {
     // products - specific routes first before resource
     Route::get('/products/labels', function () {
         try {
+            $products = collect([]); // Start with empty collection
+            
+            // Get warehouses
+            $warehouses = DB::table('warehouses')->get();
+
+            return view('products.labels-simple', compact('products', 'warehouses'));
+        } catch (\Exception $e) {
+            $products = collect([]);
+            $warehouses = collect([]);
+            return view('products.labels-simple', compact('products', 'warehouses'));
+        }
+    })->name('products.labels');
+    
+    // Search products for labels
+    Route::get('/products/labels/search', function (Request $request) {
+        try {
+            $searchTerm = $request->get('q', '');
+            
+            // Remove dummy data - use real data only
+            
+            if (strlen($searchTerm) < 2) {
+                return response()->json([]);
+            }
+            
+            // Search products with proper error handling
             $products = DB::table('products')
-                ->leftJoin('product_warehouse', 'product_warehouse.product_id', '=', 'products.id')
-                ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
-                ->leftJoin('brands', 'brands.id', '=', 'products.brand_id')
-                ->leftJoin('units', 'units.id', '=', 'products.unit_id')
-                ->select(
-                    'products.id',
-                    'products.name',
-                    'products.code',
-                    'products.price',
-                    DB::raw('COALESCE(SUM(product_warehouse.qte), 0) as stock'),
-                    'categories.name as category_name',
-                    'brands.name as brand_name',
-                    'units.name as unit_name'
-                )
-                ->groupBy('products.id', 'products.name', 'products.code', 'products.price', 'categories.name', 'brands.name', 'units.name')
+                ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
+                ->leftJoin('brands', 'products.brand_id', '=', 'brands.id')
+                ->leftJoin('units', 'products.unit_id', '=', 'units.id')
+                ->select('products.id', 'products.name', 'products.code', 'products.price', 'products.stock_alert as stock', 'categories.name as category_name', 'brands.name as brand_name', 'units.name as unit_name')
+                ->where(function($query) use ($searchTerm) {
+                    $query->where('products.name', 'like', '%' . $searchTerm . '%')
+                          ->orWhere('products.code', 'like', '%' . $searchTerm . '%');
+                })
                 ->orderBy('products.name')
+                ->limit(20)
                 ->get();
 
             // Add default values for missing fields
             $products = $products->map(function ($product) {
-                return (object) [
+                return [
                     'id' => $product->id,
                     'name' => $product->name ?? 'Unknown Product',
                     'code' => $product->code ?? 'N/A',
                     'sku' => $product->code ?? 'N/A',
                     'price' => $product->price ?? 0,
                     'stock' => $product->stock ?? 0,
-                    'category_name' => $product->category_name ?? 'General',
-                    'brand_name' => $product->brand_name ?? 'No Brand',
-                    'unit_name' => $product->unit_name ?? 'pcs'
+                    'category_name' => 'General',
+                    'brand_name' => 'No Brand',
+                    'unit_name' => 'pcs'
                 ];
             });
 
-            return view('products.labels-standalone', compact('products'));
+            return response()->json($products);
         } catch (\Exception $e) {
-            \Log::error('Labels route error: ' . $e->getMessage());
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error('Labels search error: ' . $e->getMessage());
+            return response()->json(['error' => 'Search failed: ' . $e->getMessage()], 500);
         }
-    })->name('products.labels');
+    })->name('products.labels.search');
 
-    Route::get('/products/stock-count', function () {
-        try {
-            $products = DB::table('products')
-                ->leftJoin('product_warehouse', 'product_warehouse.product_id', '=', 'products.id')
-                ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
-                ->leftJoin('brands', 'brands.id', '=', 'products.brand_id')
-                ->leftJoin('units', 'units.id', '=', 'products.unit_id')
-                ->select(
-                    'products.id',
-                    'products.name',
-                    'products.code',
-                    'products.price',
-                    DB::raw('COALESCE(SUM(product_warehouse.qte), 0) as stock'),
-                    'categories.name as category_name',
-                    'brands.name as brand_name',
-                    'units.name as unit_name'
-                )
-                ->groupBy('products.id', 'products.name', 'products.code', 'products.price', 'categories.name', 'brands.name', 'units.name')
-                ->orderBy('products.name')
-                ->get();
+    Route::get('/products/stock-count', [App\Http\Controllers\StockCountController::class, 'index'])->name('stock-count.index');
 
-            return view('products.stock-count', compact('products'));
-        } catch (\Exception $e) {
-            \Log::error('Stock count route error: ' . $e->getMessage());
-            return view('products.stock-count', ['products' => collect([])]);
-        }
-    })->name('products.stock_count');
+    // Stock count routes
+    Route::post('/products/stock-count', [App\Http\Controllers\StockCountController::class, 'store'])->name('stock-count.store');
+    Route::get('/products/stock-count/{id}', [App\Http\Controllers\StockCountController::class, 'show'])->name('stock-count.show');
+    Route::get('/products/stock-count/{id}/edit', [App\Http\Controllers\StockCountController::class, 'edit'])->name('stock-count.edit');
+    Route::put('/products/stock-count/{id}', [App\Http\Controllers\StockCountController::class, 'update'])->name('stock-count.update');
+    Route::delete('/products/stock-count/{id}', [App\Http\Controllers\StockCountController::class, 'destroy'])->name('stock-count.destroy');
 
     Route::get('/products/export/pdf', [ProductController::class, 'exportPdf'])->name('products.export.pdf');
     Route::get('/products/export/excel', [ProductController::class, 'exportExcel'])->name('products.export.excel');
@@ -136,6 +189,7 @@ Route::middleware('auth')->prefix('app')->group(function () {
     Route::post('/products/reject-pending', [ProductController::class, 'rejectPending'])->name('products.reject-pending');
     Route::post('/products/import', [ProductController::class, 'import'])->name('products.import');
     Route::get('/products/{product}/barcode', [ProductController::class, 'barcode'])->name('products.barcode');
+    Route::post('/products/generate-code', [ProductController::class, 'generateCode'])->name('products.generate-code');
 
     // products resource route (must be last)
     Route::resource('products', ProductController::class);

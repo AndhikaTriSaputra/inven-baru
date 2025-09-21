@@ -32,7 +32,10 @@ class PurchaseController extends Controller
             $query->where('pu.date', $request->date);
         }
         if ($request->filled('ref')) {
-            $query->where('pu.Ref', 'like', '%' . $request->ref . '%');
+            $query->where(function($q) use ($request) {
+                $q->where('pu.Ref', 'like', '%' . $request->ref . '%')
+                  ->orWhere('p.name', 'like', '%' . $request->ref . '%');
+            });
         }
         if ($request->filled('supplier_id')) {
             $query->where('pu.provider_id', $request->supplier_id);
@@ -76,9 +79,10 @@ class PurchaseController extends Controller
 
     private function exportPdf($data)
     {
-        // Create a simple HTML view for PDF like transfers
+        // Create HTML content for print
         $html = view('purchases.pdf', compact('data'))->render();
         
+        // Return HTML with proper headers for printing
         return response($html)
             ->header('Content-Type', 'text/html')
             ->header('Content-Disposition', 'inline; filename="purchases_report.html"');

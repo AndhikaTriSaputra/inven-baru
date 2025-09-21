@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Schema;
 use App\Models\Project;
 use App\Models\Tag;
 use App\Models\Unit;
+use App\Models\Product;
+
 
 
 
@@ -76,17 +78,38 @@ class ProductController extends Controller
             ->orderBy('p.name')
             ->get();
 
+        $filename = 'products_' . date('Y-m-d_H-i-s') . '.csv';
+
         $headers = [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename=products.csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
         ];
 
         $callback = function() use ($rows) {
             $output = fopen('php://output', 'w');
-            fputcsv($output, ['ID','Code','Name','Type','Brand','Unit','Category']);
+            
+            // Add BOM for UTF-8 to ensure proper encoding in Excel
+            fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+            
+            // Add headers
+            fputcsv($output, ['ID', 'Code', 'Name', 'Type', 'Brand', 'Unit', 'Category']);
+            
+            // Add data rows
             foreach ($rows as $r) {
-                fputcsv($output, [$r->id, $r->code, $r->name, $r->type, $r->brand, $r->unit, $r->category]);
+                fputcsv($output, [
+                    $r->id, 
+                    $r->code, 
+                    $r->name, 
+                    ucfirst($r->type), 
+                    $r->brand, 
+                    $r->unit, 
+                    $r->category
+                ]);
             }
+            
             fclose($output);
         };
 
@@ -116,22 +139,26 @@ class ProductController extends Controller
     //     return view('products.create', compact('categories', 'brands', 'projects', 'units', 'tags'));
     // }
 
-public function create()
-{
-    return view('products.create', [
-    'categories'     => Category::all(),
-    'brands'         => Brand::all(),
-    'projects'       => Schema::hasTable('projects') 
-                            ? DB::table('projects')->select('id','name')->get()
-                            : collect(),
-    'tags'           => Schema::hasTable('tags') 
-                            ? DB::table('tags')->select('id','name')->get()
-                            : collect(),
-    'units'          => Unit::all(),
+    public function create()
+    {
+        // Generate a unique product code automatically
+        $generatedCode = Product::generateUniqueCode();
+        
+        return view('products.create', [
+        'categories'     => Category::all(),
+        'brands'         => Brand::all(),
+        'projects'       => Schema::hasTable('projects') 
+                                ? DB::table('projects')->select('id','name')->get()
+                                : collect(),
+        'tags'           => Schema::hasTable('tags') 
+                                ? DB::table('tags')->select('id','name')->get()
+                                : collect(),
+        'units'          => Unit::all(),
         'barcode_types'  => ['Code 128', 'EAN13', 'UPC', 'QR'],
         'types'          => ['Standard Product', 'Combo Product', 'Service'],
+        'generated_code' => $generatedCode,
     ]);
-}
+    }
 
 // public function create()
 // {
@@ -312,9 +339,17 @@ public function create()
             $updateData['image'] = null;
         }
 
-        DB::table('products')->where('id',$id)->update($updateData);
-
-        return redirect()->route('products.index')->with('success','Product updated successfully');
+        try {
+            $updated = DB::table('products')->where('id',$id)->update($updateData);
+            
+            if ($updated) {
+                return redirect()->route('products.index')->with('success','Product updated successfully');
+            } else {
+                return redirect()->back()->with('error','No changes made to the product');
+            }
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error','Failed to update product: ' . $e->getMessage());
+        }
     }
 
     /** Delete */
@@ -420,5 +455,18 @@ public function create()
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
+    }
+
+    public function generateCode()
+    {
+        // Generate code with format PRD + 9 random digits
+        $code = 'PRD' . str_pad(rand(0, 999999999), 9, '0', STR_PAD_LEFT);
+        
+        // Check if code already exists
+        while (DB::table('products')->where('code', $code)->exists()) {
+            $code = 'PRD' . str_pad(rand(0, 999999999), 9, '0', STR_PAD_LEFT);
+        }
+        
+        return response()->json(['code' => $code]);
     }
 }

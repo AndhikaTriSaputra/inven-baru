@@ -594,13 +594,13 @@
             const profileMenu = document.getElementById('profile-menu');
             
             if (languageMenu) {
-                languageMenu.classList.add('opacity-0', 'invisible');
-                languageMenu.classList.remove('opacity-100', 'visible');
+            languageMenu.classList.add('opacity-0', 'invisible');
+            languageMenu.classList.remove('opacity-100', 'visible');
             }
             
             if (profileMenu) {
-                profileMenu.classList.add('opacity-0', 'invisible');
-                profileMenu.classList.remove('opacity-100', 'visible');
+            profileMenu.classList.add('opacity-0', 'invisible');
+            profileMenu.classList.remove('opacity-100', 'visible');
             }
         }
 

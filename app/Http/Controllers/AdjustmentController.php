@@ -257,8 +257,23 @@ class AdjustmentController extends Controller
     /** Delete */
     public function destroy(int $id)
     {
-        DB::table('adjustments')->where('id',$id)->delete();
-        return back()->with('ok','Adjustment deleted.');
+        try {
+            DB::beginTransaction();
+            
+            // Delete adjustment details first to avoid foreign key constraint
+            if (DB::getSchemaBuilder()->hasTable('adjustment_details')) {
+                DB::table('adjustment_details')->where('adjustment_id', $id)->delete();
+            }
+            
+            // Delete adjustment
+            DB::table('adjustments')->where('id', $id)->delete();
+            
+            DB::commit();
+            return back()->with('ok', 'Adjustment deleted successfully.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Failed to delete adjustment: ' . $e->getMessage());
+        }
     }
 
     /** AJAX: search products by code or name */

@@ -1,5 +1,4 @@
 
-
 @extends('layouts.app')
 
 @section('header')
@@ -129,10 +128,10 @@
                     </label>
                     <div class="relative">
                         <input type="text" name="code" value="{{ old('code') }}" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
-                               class="w-full rounded-lg border-2 border-gray-200 px-3 py-2.5 pr-10 text-sm text-gray-900 placeholder-gray-400 transition-all duration-300 focus:border-violet-500 focus:ring-2 focus:ring-violet-100 focus:outline-none hover:border-gray-300" 
+                               class="w-full rounded-lg border-2 border-gray-200 px-3 py-2.5 pr-10 text-sm text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-100 focus:outline-none hover:border-gray-300" 
                                placeholder="Enter product code" required />
                         <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-                            <button type="button" id="barcode-generator-btn" onclick="generateRandomBarcode()" class="p-1 rounded hover:bg-gray-100 transition-colors duration-200 cursor-pointer" title="Generate random barcode (PRD + 9 digits)">
+                            <button type="button" onclick="generateRandomBarcode()" class="p-1 rounded hover:bg-gray-100 transition-colors duration-200" title="Generate random barcode">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 hover:text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
                                 </svg>
@@ -145,6 +144,41 @@
                         </svg>
                         <span class="text-sm">Scan your barcode and ensure the symbology matches</span>
                     </div>
+                    
+                    <script>
+                    // Inline script to ensure function is available
+                    function generateRandomBarcode() {
+                        console.log('generateRandomBarcode called (inline)');
+                        const codeInput = document.querySelector('input[name="code"]');
+                        if (!codeInput) {
+                            console.log('Code input not found');
+                            return;
+                        }
+
+                        // Generate code directly
+                        const prefix = 'PRD';
+                        const digits = Math.floor(Math.random() * 1000000000).toString().padStart(9, '0');
+                        const generatedCode = prefix + digits;
+                        
+                        console.log('Generated code:', generatedCode);
+                        codeInput.value = generatedCode;
+                        
+                        // Visual feedback
+                        codeInput.classList.add('ring-2','ring-violet-200','border-violet-400');
+                        setTimeout(()=>{
+                            codeInput.classList.remove('ring-2','ring-violet-200','border-violet-400');
+                        }, 700);
+                    }
+                    
+                    // Auto-generate on page load
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const codeInput = document.querySelector('input[name="code"]');
+                        if (codeInput && !codeInput.value) {
+                            console.log('Auto-generating code on page load (inline)');
+                            generateRandomBarcode();
+                        }
+                    });
+                    </script>
                     
                     @error('code')
                     <div class="mt-1 flex items-center space-x-1 text-red-600">
@@ -266,7 +300,7 @@
 </div>
 
 
-<div id="tagModal" class="hidden fixed inset-0 z-50 bg-black/50 items-center justify-center">
+<div id="tagModal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
     <div class="bg-white p-6 rounded shadow w-96">
         <h2 class="text-lg font-bold mb-2">Create New Tag</h2>
         <input type="text" id="tagName" class="w-full mb-2 p-2 border rounded" placeholder="Enter tag name">
@@ -517,15 +551,46 @@ function submitTag() {
             </div>
             @enderror
             
-            <div id="preview" class="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+            <div id="imageInfo" class="mt-4 text-sm text-gray-600 hidden">
+                <span id="imageCount">0</span> image(s) selected
+            </div>
+            <div id="preview" class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-6"></div>
         </div>
     </div>
    
 
 </form>
+@endsection
 
 @push('scripts')
 <script>
+// Barcode generator via button: prefix PRD + 9 random digits
+function generateRandomBarcode() {
+    console.log('generateRandomBarcode called');
+    const codeInput = document.querySelector('input[name="code"]');
+    if (!codeInput) {
+        console.log('Code input not found');
+        return;
+    }
+
+    // Generate code directly (simpler approach)
+    const prefix = 'PRD';
+    const digits = Math.floor(Math.random() * 1000000000).toString().padStart(9, '0');
+    const generatedCode = prefix + digits;
+    
+    console.log('Generated code:', generatedCode);
+    codeInput.value = generatedCode;
+    
+    // Visual feedback
+    codeInput.classList.add('ring-2','ring-violet-200','border-violet-400');
+    setTimeout(()=>{
+        codeInput.classList.remove('ring-2','ring-violet-200','border-violet-400');
+    }, 700);
+}
+
+// Make function globally available
+window.generateRandomBarcode = generateRandomBarcode;
+
 // Rely on native required + backend validation. No JS blocking on submit
 document.addEventListener('DOMContentLoaded', function () {
     const input = document.getElementById('images');
@@ -551,142 +616,68 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
     
-    // Barcode generator: PRD + 9 random digits
-    function generateRandomBarcode() {
-        // Find the code input field
+    // Auto-generate product code based on product name
+    function generateProductCode() {
+        const nameInput = document.querySelector('input[name="name"]');
         const codeInput = document.querySelector('input[name="code"]');
-        if (!codeInput) {
-            console.error('Code input field not found!');
-            return;
-        }
-
-        // Generate PRD + 9 random digits
-        const prefix = 'PRD';
+        
+        if (!nameInput || !codeInput) return;
+        
+        // Only generate if code field is empty
+        if (codeInput.value.trim() === '') {
+            const productName = nameInput.value.trim();
+            if (productName.length > 0) {
+                // Create code from product name: first 3 letters + random numbers
+                const prefix = productName.substring(0, 3).toUpperCase().replace(/[^A-Z]/g, '');
+                const cleanPrefix = prefix.length > 0 ? prefix : 'PRD';
+                const totalLen = 12;
+                const digitsNeeded = Math.max(1, totalLen - cleanPrefix.length);
         let digits = '';
-        for (let i = 0; i < 9; i++) {
+                for (let i = 0; i < digitsNeeded; i++) {
             digits += Math.floor(Math.random() * 10).toString();
         }
-        const barcode = prefix + digits;
-
-        // Set the value
-        codeInput.value = barcode;
-        
-        // Visual feedback with animation
-        codeInput.style.borderColor = '#8B5CF6';
-        codeInput.style.backgroundColor = '#F3F4F6';
-        codeInput.style.transform = 'scale(1.02)';
-        
-        setTimeout(() => {
-            codeInput.style.borderColor = '';
-            codeInput.style.backgroundColor = '';
-            codeInput.style.transform = '';
-        }, 1000);
-        
-        // Focus on the input
-        codeInput.focus();
-        
-        // Show success message
-        console.log('Generated barcode:', barcode);
-        
-        // Optional: Show toast notification
-        showBarcodeNotification(barcode);
-    }
-    
-    // Show barcode generation notification
-    function showBarcodeNotification(barcode) {
-        // Create notification element
-        const notification = document.createElement('div');
-        notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-all duration-300';
-        notification.innerHTML = `
-            <div class="flex items-center space-x-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-                <span>Generated: ${barcode}</span>
-            </div>
-        `;
-        
-        document.body.appendChild(notification);
-        
-        // Remove after 3 seconds
-        setTimeout(() => {
-            notification.style.opacity = '0';
-            notification.style.transform = 'translateX(100%)';
-            setTimeout(() => {
-                document.body.removeChild(notification);
-            }, 300);
-        }, 3000);
-    }
-    
-    // Make function globally available
-    window.generateRandomBarcode = generateRandomBarcode;
-    
-    // Debug function to test barcode generation
-    window.debugBarcode = function() {
-        console.log('Testing barcode generation...');
-        const codeInput = document.querySelector('input[name="code"]');
-        console.log('Code input found:', !!codeInput);
-        if (codeInput) {
-            console.log('Current value:', codeInput.value);
-        }
-        generateRandomBarcode();
-    };
-    
-    // Debug function to check button
-    window.debugButton = function() {
-        const button = document.getElementById('barcode-generator-btn');
-        console.log('Button found:', !!button);
-        if (button) {
-            console.log('Button element:', button);
-            console.log('Button onclick:', button.onclick);
-        }
-    };
-
-    // Event listener for barcode button using ID - Multiple fallbacks
-    function attachBarcodeListener() {
-        const barcodeButton = document.getElementById('barcode-generator-btn');
-        if (barcodeButton) {
-            console.log('Barcode button found, attaching listener');
-            barcodeButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Barcode button clicked!');
-                generateRandomBarcode();
-            });
-            return true;
-        } else {
-            console.log('Barcode button not found');
-            return false;
+                const value = cleanPrefix + digits;
+                
+                codeInput.value = value;
+                // Visual feedback
+                codeInput.classList.add('ring-2','ring-violet-200','border-violet-400');
+                setTimeout(()=>{
+                    codeInput.classList.remove('ring-2','ring-violet-200','border-violet-400');
+                }, 700);
+            }
         }
     }
 
-    // Try multiple times to attach the listener
+    // Auto-generate code when product name is entered
+    const nameInput = document.querySelector('input[name="name"]');
+    if (nameInput) {
+        nameInput.addEventListener('input', function() {
+            // Debounce the generation to avoid too many calls
+            clearTimeout(this.generateTimeout);
+            this.generateTimeout = setTimeout(generateProductCode, 500);
+        });
+    }
+
+    // Auto-generate code on page load if no old value exists
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('DOM loaded, trying to attach barcode listener');
-        if (!attachBarcodeListener()) {
-            // Try again after a short delay
-            setTimeout(() => {
-                console.log('Retrying barcode listener attachment');
-                attachBarcodeListener();
-            }, 100);
-        }
-    });
-
-    // Also try when window loads
-    window.addEventListener('load', function() {
-        console.log('Window loaded, trying to attach barcode listener');
-        attachBarcodeListener();
-    });
-
-    // Keyboard shortcut for barcode generation (Ctrl+G)
-    document.addEventListener('keydown', function(e) {
-        if (e.ctrlKey && e.key === 'g') {
-            e.preventDefault();
+        const codeInput = document.querySelector('input[name="code"]');
+        if (codeInput && !codeInput.value) {
+            console.log('Auto-generating code on page load');
             generateRandomBarcode();
         }
+        
+        // Add event listener for generate barcode button
+        const generateBtn = document.getElementById('generateBarcodeBtn');
+        if (generateBtn) {
+            generateBtn.addEventListener('click', function() {
+                console.log('Generate barcode button clicked');
+            generateRandomBarcode();
+            });
+        }
     });
 
-    // Do not auto-generate on load; keep empty by default. Use the button to generate when needed.
+    // Initialize empty preview state
+    renderPreviews([]);
     
     // Tags chips/select
     const tagsSelect = document.getElementById('tagsSelect');
@@ -695,24 +686,177 @@ document.addEventListener('DOMContentLoaded', function () {
     const tagsMenu = document.getElementById('tagsMenu');
     const tagsList = document.getElementById('tagsList');
 
+    function updateImageInfo(count) {
+        const imageInfo = document.getElementById('imageInfo');
+        const imageCount = document.getElementById('imageCount');
+        
+        if (count > 0) {
+            imageCount.textContent = count;
+            imageInfo.classList.remove('hidden');
+        } else {
+            imageInfo.classList.add('hidden');
+        }
+    }
+
     function renderPreviews(files) {
         preview.innerHTML = '';
-        Array.from(files).forEach(file => {
-            if (!file.type.startsWith('image/')) return;
+        
+        if (!files || files.length === 0) {
+            const emptyMessage = document.createElement('div');
+            emptyMessage.className = 'col-span-full text-center text-gray-500 py-8';
+            emptyMessage.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-2 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                <p class="text-sm">No images selected</p>
+            `;
+            preview.appendChild(emptyMessage);
+            updateImageInfo(0);
+            return;
+        }
+        
+        const imageFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        const validImageFiles = imageFiles.filter(file => file.size <= maxSize);
+        const oversizedFiles = imageFiles.filter(file => file.size > maxSize);
+        
+        updateImageInfo(validImageFiles.length);
+        
+        if (imageFiles.length === 0 && files.length > 0) {
+            const invalidMessage = document.createElement('div');
+            invalidMessage.className = 'col-span-full text-center text-red-500 py-8';
+            invalidMessage.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-2 text-red-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                </svg>
+                <p class="text-sm font-medium">Invalid file type</p>
+                <p class="text-xs text-gray-500 mt-1">Please select only image files (JPG, PNG, GIF)</p>
+            `;
+            preview.appendChild(invalidMessage);
+            return;
+        }
+        
+        if (oversizedFiles.length > 0) {
+            const oversizedMessage = document.createElement('div');
+            oversizedMessage.className = 'col-span-full text-center text-orange-500 py-4 mb-4 bg-orange-50 rounded-lg border border-orange-200';
+            oversizedMessage.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mx-auto mb-2 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                </svg>
+                <p class="text-sm font-medium">Some files are too large</p>
+                <p class="text-xs text-gray-600 mt-1">Files larger than 10MB will be skipped</p>
+            `;
+            preview.appendChild(oversizedMessage);
+        }
+        
+        if (validImageFiles.length === 0 && imageFiles.length > 0) {
+            const noValidMessage = document.createElement('div');
+            noValidMessage.className = 'col-span-full text-center text-red-500 py-8';
+            noValidMessage.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-2 text-red-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                </svg>
+                <p class="text-sm font-medium">No valid images found</p>
+                <p class="text-xs text-gray-500 mt-1">All selected files are either invalid type or too large</p>
+            `;
+            preview.appendChild(noValidMessage);
+            return;
+        }
+        
+        if (validImageFiles.length === 0) {
+            const emptyMessage = document.createElement('div');
+            emptyMessage.className = 'col-span-full text-center text-gray-500 py-8';
+            emptyMessage.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-2 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                <p class="text-sm">No images selected</p>
+            `;
+            preview.appendChild(emptyMessage);
+            return;
+        }
+        
+        // Clear any existing messages
+        const existingMessages = preview.querySelectorAll('.col-span-full');
+        existingMessages.forEach(msg => msg.remove());
+        
+        validImageFiles.forEach((file, index) => {
             const reader = new FileReader();
             reader.onload = e => {
+                const container = document.createElement('div');
+                container.className = 'relative group bg-white rounded-lg border shadow-sm overflow-hidden min-w-0';
+                container.dataset.index = index;
+                
                 const img = document.createElement('img');
                 img.src = e.target.result;
                 img.alt = file.name;
-                img.className = 'w-full h-28 object-cover rounded-lg border';
-                preview.appendChild(img);
+                img.className = 'w-full h-48 object-cover';
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.type = 'button';
+                deleteBtn.className = 'absolute -top-2 -right-2 w-10 h-10 bg-red-500 text-white rounded-full flex items-center justify-center text-lg hover:bg-red-600 transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-lg z-10';
+                deleteBtn.innerHTML = '×';
+                deleteBtn.title = 'Remove image';
+                deleteBtn.onclick = () => removeImage(index);
+                
+                const fileInfo = document.createElement('div');
+                fileInfo.className = 'p-3 bg-gray-50 border-t';
+                fileInfo.innerHTML = `
+                    <div class="text-sm font-medium text-gray-900 truncate" title="${file.name}">${file.name}</div>
+                    <div class="text-sm text-gray-500">${(file.size / 1024 / 1024).toFixed(2)} MB</div>
+                `;
+                
+                container.appendChild(img);
+                container.appendChild(deleteBtn);
+                container.appendChild(fileInfo);
+                preview.appendChild(container);
             };
             reader.readAsDataURL(file);
         });
     }
 
+    function removeImage(index) {
+        const input = document.getElementById('images');
+        const files = Array.from(input.files);
+        const fileToRemove = files[index];
+        
+        if (!fileToRemove) return;
+        
+        // Show confirmation dialog
+        if (confirm(Are you sure you want to remove "${fileToRemove.name}"?)) {
+            const dt = new DataTransfer();
+            
+            // Copy all files except the one to be removed
+            files.forEach((file, i) => {
+                if (i !== index) {
+                    dt.items.add(file);
+                }
+            });
+            
+            // Update the input files
+            input.files = dt.files;
+            
+            // Re-render previews with updated files
+            renderPreviews(input.files);
+        }
+    }
+
     input.addEventListener('change', (e) => {
+        // Show loading state
+        preview.innerHTML = `
+            <div class="col-span-full text-center text-gray-500 py-8">
+                <svg class="animate-spin h-8 w-8 mx-auto mb-2 text-violet-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="text-sm">Processing images...</p>
+            </div>
+        `;
+        
+        // Small delay to show loading state
+        setTimeout(() => {
         renderPreviews(e.target.files);
+        }, 100);
     });
 
     ['dragenter','dragover'].forEach(evt => dropzone.addEventListener(evt, (e) => {
@@ -744,7 +888,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const chip = document.createElement('span');
             chip.dataset.chip = '1';
             chip.className = 'inline-flex items-center gap-1 bg-violet-50 text-violet-700 border border-violet-200 px-2 py-0.5 rounded-full text-xs';
-            chip.innerHTML = <span>${opt.name}</span>;
+            chip.innerHTML = `<span>${opt.name}</span>`;
             const closeBtn = document.createElement('button');
             closeBtn.type = 'button';
             closeBtn.className = 'text-violet-600 hover:text-violet-800';
@@ -811,4 +955,3 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endpush
-@endsection

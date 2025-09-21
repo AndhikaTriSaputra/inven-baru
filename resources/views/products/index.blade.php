@@ -5,6 +5,40 @@
 
 @section('content')
 <div class="bg-white border border-gray-200 rounded-lg p-6">
+    <!-- Success Message -->
+    @if (session('success'))
+    <div class="mb-6 rounded-2xl border border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 text-green-800 px-6 py-4 shadow-sm">
+        <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+            </div>
+            <div>
+                <p class="font-semibold">Success!</p>
+                <p class="text-sm">{{ session('success') }}</p>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <!-- Error Message -->
+    @if (session('error'))
+    <div class="mb-6 rounded-2xl border border-red-200 bg-gradient-to-r from-red-50 to-pink-50 text-red-700 px-6 py-4 shadow-sm">
+        <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <div>
+                <p class="font-semibold">Error!</p>
+                <p class="text-sm">{{ session('error') }}</p>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- Header Section -->
     <div class="flex items-center justify-between mb-6">
         <!-- Title and Breadcrumb -->
@@ -32,14 +66,15 @@
                 Filter
             </button>
             
-            <a href="{{ request()->fullUrlWithQuery(['export'=>'pdf']) }}" target="_blank" class="flex items-center px-4 py-2 border border-green-200 text-green-600 bg-white rounded-md hover:bg-green-50 transition-colors duration-200">
+            <a href="{{ route('products.export.pdf') }}" download class="flex items-center px-4 py-2 border border-green-200 text-green-600 bg-white rounded-md hover:bg-green-50 transition-colors duration-200">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                 </svg>
                 PDF
             </a>
             
-            <a href="{{ request()->fullUrlWithQuery(['export'=>'excel']) }}" download class="flex items-center px-4 py-2 border border-orange-200 text-orange-600 bg-white rounded-md hover:bg-orange-50 transition-colors duration-200">
+            
+            <a href="{{ route('products.export.excel') }}" download class="flex items-center px-4 py-2 border border-orange-200 text-orange-600 bg-white rounded-md hover:bg-orange-50 transition-colors duration-200">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
@@ -65,7 +100,7 @@
                     </th>
                     <th class="px-3 py-3 text-left text-gray-600 font-semibold">Image</th>
                     <th class="px-3 py-3 text-left text-gray-600 font-semibold">Type</th>
-                    <th class="px-3 py-3 text-left text-gray-600 font-semibold">Name</th>
+                    <th class="px-3 py-3 text-left text-gray-600 font-semibold">Item</th>
                     <th class="px-3 py-3 text-left text-gray-600 font-semibold">Tag</th>
                     <th class="px-3 py-3 text-left text-gray-600 font-semibold">Project</th>
                     <th class="px-3 py-3 text-left text-gray-600 font-semibold">Code</th>
@@ -84,7 +119,22 @@
                         <input type="checkbox" class="rounded border-gray-300 text-violet-600 focus:ring-violet-500">
 </td>
                     <td class="px-3 py-3">
-                        <div class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center text-[10px] text-gray-400 border">image</div>
+                        @php
+                            $firstImage = null;
+                            if ($p->image) {
+                                $images = explode(',', $p->image);
+                                $firstImage = trim($images[0]);
+                            }
+                        @endphp
+                        @if($firstImage && file_exists(public_path('images/products/' . $firstImage)))
+                            <img src="{{ asset('images/products/' . $firstImage) }}" alt="{{ $p->name }}" class="w-10 h-10 rounded-xl object-cover border">
+                        @else
+                            <div class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center text-[10px] text-gray-400 border">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                            </div>
+                        @endif
 </td>
                     <td class="px-3 py-3 text-gray-700">{{ ucfirst($p->type ?? 'Product') }}</td>
                     <td class="px-3 py-3 text-gray-700 font-medium">{{ $p->name ?? '-' }}</td>
@@ -116,13 +166,13 @@
                     @endif
                     <td class="px-3 py-3">
                         <div class="flex items-center gap-2 justify-end">
-                            <a href="/products/{{ $p->id }}" class="w-8 h-8 rounded-full border border-blue-300 text-blue-600 hover:bg-blue-50 grid place-items-center" title="View">
+                            <a href="{{ route('products.show', $p->id) }}" class="w-8 h-8 rounded-full border border-blue-300 text-blue-600 hover:bg-blue-50 grid place-items-center" title="View">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                             </a>
-                            <button class="w-8 h-8 rounded-full border border-emerald-300 text-emerald-600 hover:bg-emerald-50 grid place-items-center" title="Edit">
+                            <a href="{{ route('products.edit', $p->id) }}" class="w-8 h-8 rounded-full border border-emerald-300 text-emerald-600 hover:bg-emerald-50 grid place-items-center" title="Edit">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 113 3L7 19l-4 1 1-4 12.5-12.5Z"/></svg>
-                            </button>
-                            <button class="w-8 h-8 rounded-full border border-rose-300 text-rose-600 hover:bg-rose-50 grid place-items-center" title="Delete">
+                            </a>
+                            <button onclick="deleteProduct({{ $p->id }})" class="w-8 h-8 rounded-full border border-rose-300 text-rose-600 hover:bg-rose-50 grid place-items-center" title="Delete">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
                             </button>
                         </div>
@@ -220,6 +270,40 @@
 
 @push('scripts')
 <script>
+  // Delete product function
+  function deleteProduct(productId) {
+    if (confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
+      // Show loading state
+      const deleteBtn = event.target.closest('button');
+      const originalContent = deleteBtn.innerHTML;
+      deleteBtn.innerHTML = '<svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+      deleteBtn.disabled = true;
+      
+      // Create a form to submit DELETE request
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = `/app/products/${productId}`;
+      
+      // Add CSRF token
+      const csrfToken = document.createElement('input');
+      csrfToken.type = 'hidden';
+      csrfToken.name = '_token';
+      csrfToken.value = '{{ csrf_token() }}';
+      form.appendChild(csrfToken);
+      
+      // Add method override for DELETE
+      const methodField = document.createElement('input');
+      methodField.type = 'hidden';
+      methodField.name = '_method';
+      methodField.value = 'DELETE';
+      form.appendChild(methodField);
+      
+      // Submit form
+      document.body.appendChild(form);
+      form.submit();
+    }
+  }
+
   (function(){
     const input = document.getElementById('tableSearch');
     const body = document.getElementById('tableBody');
@@ -236,5 +320,7 @@
       });
     });
 })();
+
+
 </script>
 @endpush

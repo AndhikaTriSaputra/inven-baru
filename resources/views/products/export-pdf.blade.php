@@ -1,52 +1,199 @@
-export-pdf.blade.php
-
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8" />
-        <title>Products - PDF</title>
-        <style>
-            body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji"; color:#111827; }
-            .container { max-width: 900px; margin: 24px auto; }
-            h1 { font-size: 22px; margin: 0 0 16px; }
-            table { width: 100%; border-collapse: collapse; }
-            th, td { border: 1px solid #e5e7eb; padding: 8px 10px; font-size: 12px; }
-            th { background: #f9fafb; text-align: left; }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>Products</h1>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Code</th>
-                        <th>Name</th>
-                        <th>Type</th>
-                        <th>Brand</th>
-                        <th>Unit</th>
-                        <th>Category</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($rows as $r)
-                        <tr>
-                            <td>{{ $r->id }}</td>
-                            <td>{{ $r->code }}</td>
-                            <td>{{ $r->name }}</td>
-                            <td>{{ ucfirst($r->type) }}</td>
-                            <td>{{ $r->brand }}</td>
-                            <td>{{ $r->unit }}</td>
-                            <td>{{ $r->category }}</td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7">No data</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </body>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Products Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            font-size: 12px;
+            color: #333;
+            background: white;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #7c3aed;
+            padding-bottom: 15px;
+        }
+        .header h1 {
+            color: #7c3aed;
+            margin: 0;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .header p {
+            margin: 5px 0 0 0;
+            color: #666;
+            font-size: 14px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            font-size: 11px;
+        }
+        th {
+            background-color: #7c3aed;
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+        tr:hover {
+            background-color: #f1f5f9;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 10px;
+            color: #666;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 15px;
+        }
+        .print-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #7c3aed;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        .print-button:hover {
+            background: #6d28d9;
+        }
+        @media print {
+            body { 
+                margin: 0; 
+                padding: 15px;
+            }
+            @page { 
+                margin: 1cm; 
+                size: A4;
+            }
+            .no-print { 
+                display: none !important; 
+            }
+            .print-button { 
+                display: none !important; 
+            }
+            .header {
+                border-bottom: 2px solid #7c3aed;
+            }
+            table {
+                page-break-inside: avoid;
+            }
+            th {
+                background-color: #7c3aed !important;
+                color: white !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="print-button no-print" onclick="window.print()">🖨️ Print</button>
+    
+    <div class="header">
+        <h1>Products Report</h1>
+        <p>Generated on {{ date('Y-m-d H:i:s') }}</p>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Code</th>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Brand</th>
+                <th>Unit</th>
+                <th>Category</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($rows as $r)
+                <tr>
+                    <td>{{ $r->id }}</td>
+                    <td>{{ $r->code }}</td>
+                    <td>{{ $r->name }}</td>
+                    <td>{{ ucfirst($r->type) }}</td>
+                    <td>{{ $r->brand }}</td>
+                    <td>{{ $r->unit }}</td>
+                    <td>{{ $r->category }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="7" style="text-align: center; color: #666; font-style: italic;">No products found</td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+    
+    <div class="footer">
+        <p>Total Records: {{ count($rows) }} | Generated by Inventory System</p>
+    </div>
+    
+    <script>
+        let printAttempted = false;
+        
+        function attemptPrint() {
+            if (printAttempted) return;
+            printAttempted = true;
+            
+            try {
+                window.print();
+            } catch (e) {
+                console.log('Print failed:', e);
+            }
+        }
+        
+        // Multiple triggers to ensure print dialog opens
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(attemptPrint, 500);
+        });
+        
+        window.onload = function() {
+            setTimeout(attemptPrint, 1000);
+        };
+        
+        window.addEventListener('load', function() {
+            setTimeout(attemptPrint, 1500);
+        });
+        
+        // Also try on user interaction
+        document.addEventListener('click', function() {
+            attemptPrint();
+        });
+        
+        document.addEventListener('keydown', function() {
+            attemptPrint();
+        });
+        
+        // Fallback timeout
+        setTimeout(attemptPrint, 100);
+    </script>
+</body>
 </html>

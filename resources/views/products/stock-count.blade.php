@@ -1,365 +1,385 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="p-6">
+<div class="bg-white border border-gray-200 rounded-lg p-6">
+    <!-- Success Message -->
+    @if (session('success'))
+    <div class="mb-6 rounded-2xl border border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 text-green-800 px-6 py-4 shadow-sm">
+        <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+            </div>
+            <div>
+                <p class="font-semibold">Success!</p>
+                <p class="text-sm">{{ session('success') }}</p>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <!-- Error Message -->
+    @if (session('error'))
+    <div class="mb-6 rounded-2xl border border-red-200 bg-gradient-to-r from-red-50 to-pink-50 text-red-700 px-6 py-4 shadow-sm">
+        <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <div>
+                <p class="font-semibold">Error!</p>
+                <p class="text-sm">{{ session('error') }}</p>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <!-- Header Section -->
     <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-bold text-gray-800">Count Stock</h2>
-        <div class="flex items-center gap-3">
-            <button onclick="saveStockCount()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-                <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>Save Count
+        <!-- Title and Breadcrumb -->
+        <div class="flex items-baseline gap-3">
+            <div class="text-2xl font-semibold">Stock Count</div>
+            <div class="text-sm text-slate-500">Products | Stock Count</div>
+        </div>
+        
+        <!-- Search Bar -->
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+            </div>
+            <input id="tableSearch" type="text" placeholder="Search this table" class="w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-500 focus:border-transparent">
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="flex items-center space-x-4">
+            <button type="button" onclick="document.getElementById('filterPanel').classList.remove('hidden')" class="flex items-center px-4 py-2 border border-blue-200 text-blue-600 bg-white rounded-md hover:bg-blue-50 transition-colors duration-200">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                </svg>
+                Filter
             </button>
-            <button onclick="exportCount()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>Export Count
-            </button>
-            <button onclick="resetCount()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                Reset Count
+            
+            <button onclick="startCount()" class="flex items-center px-4 py-2 bg-violet-600 text-white rounded-md hover:bg-violet-700 transition-colors duration-200">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+                New Count
             </button>
         </div>
     </div>
 
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div class="p-4 border-b border-gray-200">
-            <div class="flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-gray-800">Stock Count</h3>
-                <div class="flex items-center gap-4">
-                    <div class="flex items-center gap-2">
-                        <label class="text-sm text-gray-600">Filter:</label>
-                        <select id="filterOptions" class="px-3 py-1 border border-gray-300 rounded text-sm">
-                            <option value="all">All Products</option>
-                            <option value="low-stock">Low Stock Only</option>
-                            <option value="out-of-stock">Out of Stock Only</option>
-                            <option value="counted">Counted Only</option>
-                            <option value="not-counted">Not Counted</option>
-                        </select>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <label class="text-sm text-gray-600">Search:</label>
-                        <input type="text" id="searchInput" placeholder="Search products..." class="px-3 py-1 border border-gray-300 rounded text-sm w-48">
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="p-4">
-            <div class="overflow-x-auto">
+    <!-- Table -->
+    <div class="overflow-x-auto border border-gray-200 rounded-lg">
                 <table class="w-full text-sm">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-4 py-3 text-left font-semibold text-gray-700">Product</th>
-                            <th class="px-4 py-3 text-left font-semibold text-gray-700">SKU</th>
-                            <th class="px-4 py-3 text-left font-semibold text-gray-700">Category</th>
-                            <th class="px-4 py-3 text-center font-semibold text-gray-700">System Stock</th>
-                            <th class="px-4 py-3 text-center font-semibold text-gray-700">Counted Stock</th>
-                            <th class="px-4 py-3 text-center font-semibold text-gray-700">Difference</th>
-                            <th class="px-4 py-3 text-center font-semibold text-gray-700">Status</th>
-                            <th class="px-4 py-3 text-center font-semibold text-gray-700">Actions</th>
+            <thead>
+                <tr class="border-b border-gray-200">
+                    <th class="px-3 py-3 text-left">
+                        <input type="checkbox" class="rounded border-gray-300 text-violet-600 focus:ring-violet-500">
+                    </th>
+                    <th class="px-3 py-3 text-left text-gray-600 font-semibold">Date</th>
+                    <th class="px-3 py-3 text-left text-gray-600 font-semibold">Warehouse</th>
+                    <th class="px-3 py-3 text-left text-gray-600 font-semibold">Status</th>
+                    <th class="px-3 py-3 text-left text-gray-600 font-semibold">Created At</th>
+                    <th class="px-3 py-3 text-left text-gray-600 font-semibold">Action</th>
                         </tr>
                     </thead>
-                    <tbody id="stockCountTable">
-                        @forelse($products as $product)
-                        <tr class="border-b border-gray-100 product-row" data-product-id="{{ $product->id }}" data-product-name="{{ strtolower($product->name) }}" data-category="{{ strtolower($product->category_name ?? '') }}">
-                            <td class="px-4 py-3">
-                                <div class="flex items-center">
-                                    <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mr-3">
-                                        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4v10l8 4 8-4V7z"></path></svg>
-                                    </div>
-                                    <div>
-                                        <div class="font-medium text-gray-800">{{ $product->name }}</div>
-                                        <div class="text-xs text-gray-500">{{ $product->brand_name ?? 'No Brand' }}</div>
-                                    </div>
-                                </div>
+            <tbody id="tableBody">
+                @forelse($stockCounts as $stockCount)
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                    <td class="px-3 py-3">
+                        <input type="checkbox" class="rounded border-gray-300 text-violet-600 focus:ring-violet-500">
                             </td>
-                            <td class="px-4 py-3 font-mono text-sm">{{ $product->code }}</td>
-                            <td class="px-4 py-3 text-sm">{{ $product->category_name ?? 'No Category' }}</td>
-                            <td class="px-4 py-3 text-center">
-                                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                                    0 {{ $product->unit_name ?? 'pcs' }}
+                    <td class="px-3 py-3 text-gray-700">{{ \Carbon\Carbon::parse($stockCount->date)->format('M d, Y') }}</td>
+                    <td class="px-3 py-3 text-gray-700 font-medium">{{ $stockCount->warehouse_name ?? 'Unknown Warehouse' }}</td>
+                    <td class="px-3 py-3">
+                        @if($stockCount->status === 'pending')
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
+                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                                </svg>
+                                Pending
+                            </span>
+                        @elseif($stockCount->status === 'in_progress')
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                                </svg>
+                                In Progress
+                            </span>
+                        @elseif($stockCount->status === 'completed')
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                </svg>
+                                Completed
+                            </span>
+                        @else
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
+                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                </svg>
+                                Error
                                 </span>
+                        @endif
                             </td>
-                            <td class="px-4 py-3 text-center">
-                                <input type="number" 
-                                       class="counted-stock w-20 px-2 py-1 border border-gray-300 rounded text-center text-sm" 
-                                       value="0" 
-                                       min="0" 
-                                       data-product-id="{{ $product->id }}"
-                                       data-original-stock="0">
-                            </td>
-                            <td class="px-4 py-3 text-center">
-                                <span class="difference-indicator px-2 py-1 rounded-full text-sm font-medium">0</span>
-                            </td>
-                            <td class="px-4 py-3 text-center">
-                                <span class="status-indicator px-2 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600">Not Counted</span>
-                            </td>
-                            <td class="px-4 py-3 text-center">
-                                <button onclick="quickCount({{ $product->id }}, 0)" class="px-2 py-1 bg-green-100 text-green-600 rounded text-xs hover:bg-green-200 transition-colors">
-                                    Quick Count
+                    <td class="px-3 py-3 text-gray-500">{{ \Carbon\Carbon::parse($stockCount->created_at)->format('M d, Y H:i') }}</td>
+                    <td class="px-3 py-3">
+                        <div class="flex items-center gap-2 justify-end">
+                            <a href="{{ route('stock-count.show', $stockCount->id) }}" class="w-8 h-8 rounded-full border border-blue-300 text-blue-600 hover:bg-blue-50 grid place-items-center" title="View">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </a>
+                            <a href="{{ route('stock-count.edit', $stockCount->id) }}" class="w-8 h-8 rounded-full border border-emerald-300 text-emerald-600 hover:bg-emerald-50 grid place-items-center" title="Edit">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 113 3L7 19l-4 1 1-4 12.5-12.5Z"/></svg>
+                            </a>
+                            <button onclick="deleteStockCount({{ $stockCount->id }})" class="w-8 h-8 rounded-full border border-rose-300 text-rose-600 hover:bg-rose-50 grid place-items-center" title="Delete">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
                                 </button>
+                        </div>
                             </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="8" class="px-4 py-8 text-center text-gray-500">
-                                <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4v10l8 4 8-4V7z"></path></svg>
-                                <p>No products found</p>
-                            </td>
+                    <td colspan="6" class="px-4 py-8 text-center text-gray-500">No stock counts found. Create your first count by clicking the "New Count" button above.</td>
                         </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
-        </div>
-    </div>
 
-    <!-- Summary Card -->
-    <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <div class="flex items-center">
-                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4v10l8 4 8-4V7z"></path></svg>
+    <!-- Pagination -->
+    <div class="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-gray-50">
+        <div class="flex items-center space-x-2">
+            <span class="text-sm text-gray-700">Rows per page:</span>
+            <select class="text-sm border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-violet-500 focus:border-transparent bg-white">
+                <option value="10" selected>10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+        </div>
+        <div class="flex items-center space-x-2">
+            <span class="text-sm text-gray-700">
+                {{ $stockCounts->firstItem() ?? 0 }} - {{ $stockCounts->lastItem() ?? 0 }} of {{ $stockCounts->total() }}
+            </span>
+            <div class="flex items-center space-x-1">
+                <button class="px-3 py-1 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed" {{ $stockCounts->onFirstPage() ? 'disabled' : '' }}>
+                    <span class="text-xs">prev</span>
+                </button>
+                <button class="px-3 py-1 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed" {{ $stockCounts->hasMorePages() ? '' : 'disabled' }}>
+                    <span class="text-xs">next</span>
+                </button>
                 </div>
-                <div>
-                    <div class="text-2xl font-bold text-gray-800" id="totalProducts">{{ $products->count() }}</div>
-                    <div class="text-sm text-gray-500">Total Products</div>
                 </div>
             </div>
         </div>
         
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <div class="flex items-center">
-                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-3">
-                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+<!-- Filter Panel -->
+<div id="filterPanel" class="fixed inset-y-0 right-0 z-40 w-full max-w-sm bg-white border-l border-gray-200 shadow-xl hidden">
+    <div class="flex items-center justify-between p-4 border-b">
+        <button type="button" onclick="document.getElementById('filterPanel').classList.add('hidden')" class="text-slate-500">✕</button>
+        <div class="font-semibold">Filter</div>
+    </div>
+    <form method="GET" action="{{ route('stock-count.index') }}" class="p-4 space-y-4">
+        <div>
+            <label class="block text-sm text-slate-600 mb-1">Date</label>
+            <input type="date" name="date" value="{{ request('date') }}" class="w-full border rounded px-3 py-2">
                 </div>
                 <div>
-                    <div class="text-2xl font-bold text-gray-800" id="countedProducts">0</div>
-                    <div class="text-sm text-gray-500">Counted</div>
+            <label class="block text-sm text-slate-600 mb-1">Warehouse</label>
+            <select name="warehouse_id" class="w-full border rounded px-3 py-2">
+                <option value="">Choose Warehouse</option>
+                @foreach($warehouses ?? [] as $warehouse)
+                    <option value="{{ $warehouse->id }}" @selected(request('warehouse_id')==$warehouse->id)>{{ $warehouse->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div>
+            <label class="block text-sm text-slate-600 mb-1">Status</label>
+            <select name="status" class="w-full border rounded px-3 py-2">
+                <option value="">Choose Status</option>
+                <option value="pending" @selected(request('status')=='pending')>Pending</option>
+                <option value="in_progress" @selected(request('status')=='in_progress')>In Progress</option>
+                <option value="completed" @selected(request('status')=='completed')>Completed</option>
+            </select>
+        </div>
+        <div class="flex items-center gap-2">
+            <button type="submit" class="flex items-center px-4 py-2 bg-violet-600 text-white rounded">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                </svg>
+                Filter
+            </button>
+                </div>
+    </form>
+            </div>
+
+<!-- Count Stock Modal -->
+<div id="countStockModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-6 border w-[420px] shadow-lg rounded-lg bg-white">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-semibold text-gray-900">New Stock Count</h3>
+            <button onclick="closeCountModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Modal Body -->
+        <form id="countStockForm" method="POST" action="{{ route('stock-count.store') }}">
+            @csrf
+            <div class="space-y-6">
+                <!-- Date Field -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">
+                        Date <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <input type="date" name="date" id="countDate" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-sm" value="{{ date('Y-m-d') }}" required>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
                 </div>
             </div>
         </div>
         
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <div class="flex items-center">
-                <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mr-3">
-                    <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path></svg>
-                </div>
+                <!-- Warehouse Field -->
                 <div>
-                    <div class="text-2xl font-bold text-gray-800" id="discrepancies">0</div>
-                    <div class="text-sm text-gray-500">Discrepancies</div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">
+                        Warehouse <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <select name="warehouse_id" id="countWarehouse" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-sm appearance-none bg-white" required>
+                            <option value="">Select Warehouse</option>
+                            @foreach($warehouses ?? [] as $warehouse)
+                                <option value="{{ $warehouse->id }}">{{ $warehouse->name }}</option>
+                            @endforeach
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </div>
                 </div>
             </div>
+            
+            <!-- Modal Footer -->
+            <div class="flex justify-end gap-3 mt-8">
+                <button type="button" onclick="closeCountModal()" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" class="inline-flex items-center px-6 py-3 bg-violet-600 text-white text-sm font-medium rounded-md hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-violet-500 transition-colors">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Create Count
+                </button>
         </div>
-        
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <div class="flex items-center">
-                <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mr-3">
-                    <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </div>
-                <div>
-                    <div class="text-2xl font-bold text-gray-800" id="remainingProducts">{{ $products->count() }}</div>
-                    <div class="text-sm text-gray-500">Remaining</div>
-                </div>
-            </div>
-        </div>
+        </form>
     </div>
 </div>
 
+@endsection
+
+@push('scripts')
 <script>
-let stockCountData = {};
-
-// Initialize stock count data
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.counted-stock').forEach(input => {
-        const productId = input.dataset.productId;
-        const originalStock = parseInt(input.dataset.originalStock);
-        stockCountData[productId] = {
-            original: originalStock,
-            counted: originalStock,
-            changed: false
-        };
-    });
-    updateSummary();
-});
-
-// Update difference and status when counted stock changes
-document.addEventListener('input', function(e) {
-    if (e.target.classList.contains('counted-stock')) {
-        const productId = e.target.dataset.productId;
-        const originalStock = parseInt(e.target.dataset.originalStock);
-        const countedStock = parseInt(e.target.value) || 0;
+// Delete stock count function
+function deleteStockCount(stockCountId) {
+    if (confirm('Are you sure you want to delete this stock count? This action cannot be undone.')) {
+        // Show loading state
+        const deleteBtn = event.target.closest('button');
+        const originalContent = deleteBtn.innerHTML;
+        deleteBtn.innerHTML = '<svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+        deleteBtn.disabled = true;
         
-        stockCountData[productId] = {
-            original: originalStock,
-            counted: countedStock,
-            changed: countedStock !== originalStock
-        };
+        // Create a form to submit DELETE request
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/app/products/stock-count/${stockCountId}`;
         
-        updateRowStatus(productId, originalStock, countedStock);
-        updateSummary();
-    }
-});
-
-function updateRowStatus(productId, originalStock, countedStock) {
-    const row = document.querySelector(`[data-product-id="${productId}"]`);
-    const differenceSpan = row.querySelector('.difference-indicator');
-    const statusSpan = row.querySelector('.status-indicator');
-    
-    const difference = countedStock - originalStock;
-    
-    // Update difference indicator
-    differenceSpan.textContent = difference >= 0 ? `+${difference}` : `${difference}`;
-    differenceSpan.className = 'difference-indicator px-2 py-1 rounded-full text-sm font-medium';
-    
-    if (difference > 0) {
-        differenceSpan.classList.add('bg-green-100', 'text-green-800');
-    } else if (difference < 0) {
-        differenceSpan.classList.add('bg-red-100', 'text-red-800');
-    } else {
-        differenceSpan.classList.add('bg-gray-100', 'text-gray-600');
-    }
-    
-    // Update status indicator
-    statusSpan.className = 'status-indicator px-2 py-1 rounded-full text-sm font-medium';
-    if (countedStock !== originalStock) {
-        statusSpan.classList.add('bg-yellow-100', 'text-yellow-800');
-        statusSpan.textContent = 'Discrepancy';
-    } else {
-        statusSpan.classList.add('bg-green-100', 'text-green-800');
-        statusSpan.textContent = 'Counted';
-    }
-}
-
-function updateSummary() {
-    const totalProducts = Object.keys(stockCountData).length;
-    let countedProducts = 0;
-    let discrepancies = 0;
-    
-    Object.values(stockCountData).forEach(data => {
-        if (data.counted !== data.original) {
-            discrepancies++;
-        }
-        countedProducts++;
-    });
-    
-    document.getElementById('totalProducts').textContent = totalProducts;
-    document.getElementById('countedProducts').textContent = countedProducts;
-    document.getElementById('discrepancies').textContent = discrepancies;
-    document.getElementById('remainingProducts').textContent = totalProducts - countedProducts;
-}
-
-function quickCount(productId, originalStock) {
-    const input = document.querySelector(`[data-product-id="${productId}"] .counted-stock`);
-    const newValue = prompt(`Enter counted stock for this product (Original: ${originalStock}):`, originalStock);
-    
-    if (newValue !== null && !isNaN(newValue)) {
-        input.value = newValue;
-        input.dispatchEvent(new Event('input'));
-    }
-}
-
-function saveStockCount() {
-    const discrepancies = Object.values(stockCountData).filter(data => data.counted !== data.original);
-    
-    if (discrepancies.length === 0) {
-        alert('No discrepancies found. Stock count is accurate.');
-        return;
-    }
-    
-    if (confirm(`Found ${discrepancies.length} discrepancies. Do you want to update the stock levels?`)) {
-        // Here you would typically send the data to the server
-        console.log('Stock count data:', stockCountData);
-        alert('Stock count saved successfully!');
-    }
-}
-
-function exportCount() {
-    const data = Object.entries(stockCountData).map(([productId, data]) => {
-        const row = document.querySelector(`[data-product-id="${productId}"]`);
-        const productName = row.querySelector('td:first-child .font-medium').textContent;
-        const sku = row.querySelector('td:nth-child(2)').textContent;
+        // Add CSRF token
+        const csrfToken = document.createElement('input');
+        csrfToken.type = 'hidden';
+        csrfToken.name = '_token';
+        csrfToken.value = '{{ csrf_token() }}';
+        form.appendChild(csrfToken);
         
-        return {
-            'Product Name': productName,
-            'SKU': sku,
-            'System Stock': data.original,
-            'Counted Stock': data.counted,
-            'Difference': data.counted - data.original,
-            'Status': data.counted !== data.original ? 'Discrepancy' : 'Accurate'
-        };
-    });
-    
-    const csv = convertToCSV(data);
-    downloadCSV(csv, 'stock-count-report.csv');
-}
-
-function convertToCSV(data) {
-    const headers = Object.keys(data[0]);
-    const csvContent = [
-        headers.join(','),
-        ...data.map(row => headers.map(header => `"${row[header]}"`).join(','))
-    ].join('\n');
-    
-    return csvContent;
-}
-
-function downloadCSV(csv, filename) {
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    window.URL.revokeObjectURL(url);
-}
-
-function resetCount() {
-    if (confirm('Are you sure you want to reset all stock counts?')) {
-        document.querySelectorAll('.counted-stock').forEach(input => {
-            const originalStock = parseInt(input.dataset.originalStock);
-            input.value = originalStock;
-            input.dispatchEvent(new Event('input'));
-        });
+        // Add method override for DELETE
+        const methodField = document.createElement('input');
+        methodField.type = 'hidden';
+        methodField.name = '_method';
+        methodField.value = 'DELETE';
+        form.appendChild(methodField);
+        
+        // Submit form
+        document.body.appendChild(form);
+        form.submit();
     }
 }
-
-// Filter functionality
-document.getElementById('filterOptions').addEventListener('change', function() {
-    const filter = this.value;
-    const rows = document.querySelectorAll('.product-row');
-    
-    rows.forEach(row => {
-        const productId = row.dataset.productId;
-        const data = stockCountData[productId];
-        let show = true;
-        
-        switch(filter) {
-            case 'low-stock':
-                show = data.original <= 50;
-                break;
-            case 'out-of-stock':
-                show = data.original <= 0;
-                break;
-            case 'counted':
-                show = data.counted !== data.original;
-                break;
-            case 'not-counted':
-                show = data.counted === data.original;
-                break;
-        }
-        
-        row.style.display = show ? 'table-row' : 'none';
-    });
-});
 
 // Search functionality
-document.getElementById('searchInput').addEventListener('input', function() {
-    const searchTerm = this.value.toLowerCase();
-    const rows = document.querySelectorAll('.product-row');
+(function(){
+    const input = document.getElementById('tableSearch');
+    const body = document.getElementById('tableBody');
+    if(!input || !body) return;
     
-    rows.forEach(row => {
-        const productName = row.dataset.productName;
-        const category = row.dataset.category;
-        const show = productName.includes(searchTerm) || category.includes(searchTerm);
-        row.style.display = show ? 'table-row' : 'none';
+    // Store all stock counts data for search
+    const allStockCounts = @json($stockCounts->items() ?? []);
+    
+    input.addEventListener('input', function(){
+        const q = (this.value||'').toLowerCase();
+        body.querySelectorAll('tr').forEach(tr =>{
+            const text = tr.innerText.toLowerCase();
+            tr.style.display = text.includes(q) ? '' : 'none';
+        });
     });
+})();
+
+// Start count function
+function startCount() {
+    console.log('Opening count stock modal...');
+    openCountModal();
+}
+
+// Open count modal
+function openCountModal() {
+    const modal = document.getElementById('countStockModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        // Set today's date as default
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('countDate').value = today;
+    }
+}
+
+// Close count modal
+function closeCountModal() {
+    const modal = document.getElementById('countStockModal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', function(event) {
+    const modal = document.getElementById('countStockModal');
+    if (event.target === modal) {
+        closeCountModal();
+    }
+});
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeCountModal();
+    }
 });
 </script>
-@endsection
+@endpush

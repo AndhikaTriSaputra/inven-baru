@@ -69,7 +69,7 @@
         </div>
         <div>
             <div class="section-title">Purchase Info</div>
-            <div class="text-xs text-gray-600">Reference : <span class="font-medium">{{ $purchase->Ref }}</span></div>
+            <div class="text-xs text-gray-600">Item : <span class="font-medium">{{ $purchase->Ref }}</span></div>
             <div class="text-xs text-gray-600">Status : <span class="badge badge-green">{{ ucfirst($purchase->statut ?? 'received') }}</span></div>
             <div class="text-xs text-gray-600">Warehouse : <span class="font-medium">{{ $warehouse->name ?? '-' }}</span></div>
             <div class="text-xs text-gray-600">Payment Status : <span class="badge badge-yellow">{{ ucfirst($purchase->payment_statut ?? 'unpaid') }}</span></div>

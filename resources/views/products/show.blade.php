@@ -1,5 +1,3 @@
-
-
 @extends('layouts.app')
 
 @section('header-left')
@@ -266,4 +264,11 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Product show page loaded');
+    console.log('Edit buttons should be clickable now');
+});
+</script>
 @endsection

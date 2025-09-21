@@ -288,12 +288,14 @@ public function invoice($id)
             'date' => ['required','date'],
             'from_warehouse_id' => ['required','integer','different:to_warehouse_id'],
             'to_warehouse_id' => ['required','integer'],
+            'statut' => ['required','string','in:pending,sent,completed'],
             'notes' => ['nullable','string'],
         ]);
         DB::table('transfers')->where('id',$transfer->id)->update([
             'date'=>$request->date,
             'from_warehouse_id'=>$request->from_warehouse_id,
             'to_warehouse_id'=>$request->to_warehouse_id,
+            'statut'=>$request->statut,
             'notes'=>$request->notes,
             'updated_at'=>now(),
         ]);

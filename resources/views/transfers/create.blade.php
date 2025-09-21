@@ -55,7 +55,7 @@
         <div class="mb-6">
                 <label class="block mb-1 text-sm font-medium text-gray-700">Product</label>
                 <div class="relative" x-data="productSearch()">
-                    <input x-model="query" @focus="open=true; if(results.length===0) preload();" @input="search" @keydown.enter.prevent="if(results.length){ add(results[0]) }" type="text" placeholder="Scan/Search Product by Code Or Name" class="w-full px-3 py-2 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-500 focus:border-transparent">
+                    <input x-model="query" @focus="handleFocus()" @input="search" @keydown.enter.prevent="handleEnter()" type="text" placeholder="Scan/Search Product by Code Or Name" class="w-full px-3 py-2 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-500 focus:border-transparent">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
@@ -70,7 +70,7 @@
                                 <span class="truncate" x-text="item.label"></span>
                             </button>
                         </template>
-                        <div x-show="results.length===0" class="px-3 py-2 text-sm text-gray-500">No results</div>
+                        <div x-show="!results || results.length===0" class="px-3 py-2 text-sm text-gray-500">No results</div>
                     </div>
                 </div>
         </div>
@@ -219,8 +219,8 @@ function productSearch() {
             clearTimeout(this._timer);
             this._timer = setTimeout(async () => {
                 try {
-                    const base = {{ route('transfers.productSearch') }};
-                    const url = (this.query && this.query.length >= 1) ? ${base}?q=${encodeURIComponent(this.query)} : ${base}?limit=30;
+                    const base = `{{ route('transfers.productSearch') }}`;
+                    const url = (this.query && this.query.length >= 1) ? `${base}?q=${encodeURIComponent(this.query)}` : `${base}?limit=30`;
                     const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
                     if (!res.ok) { this.results = []; return; }
                     const data = await res.json().catch(() => []);
@@ -230,7 +230,7 @@ function productSearch() {
         },
         async preload() {
             try {
-                const res = await fetch({{ route('transfers.productSearch') }}?limit=30, { headers: { 'Accept': 'application/json' } });
+                const res = await fetch(`{{ route('transfers.productSearch') }}?limit=30`, { headers: { 'Accept': 'application/json' } });
                 if (!res.ok) { this.results = []; return; }
                 const data = await res.json().catch(() => []);
                 this.results = Array.isArray(data) ? data : [];
@@ -240,6 +240,17 @@ function productSearch() {
             this.open = false; 
             this.query = '';
             addProduct(item);
+        },
+        handleFocus() {
+            this.open = true;
+            if (this.results && this.results.length === 0) {
+                this.preload();
+            }
+        },
+        handleEnter() {
+            if (this.results && this.results.length > 0) {
+                this.add(this.results[0]);
+            }
         }
     }
 }
@@ -322,13 +333,13 @@ function addProduct(p) {
 }
 
 function increaseQty(index) {
-    const input = document.getElementById(qty-${index});
+    const input = document.getElementById(`qty-${index}`);
     const currentValue = parseInt(input.value) || 0;
     input.value = currentValue + 1;
 }
 
 function decreaseQty(index) {
-    const input = document.getElementById(qty-${index});
+    const input = document.getElementById(`qty-${index}`);
     const currentValue = parseInt(input.value) || 0;
     if (currentValue > 0) {
         input.value = currentValue - 1;
@@ -462,7 +473,7 @@ function updateProductRow(index, product) {
         // Update quantity input name to include purchase_unit_id
         const qtyInput = row.querySelector('input[type="number"]');
         if (qtyInput) {
-            qtyInput.name = items[${index}][quantity];
+            qtyInput.name = `items[${index}][quantity]`;
         }
         
         // Add hidden input for purchase_unit_id
@@ -470,7 +481,7 @@ function updateProductRow(index, product) {
         if (!purchaseUnitInput) {
             purchaseUnitInput = document.createElement('input');
             purchaseUnitInput.type = 'hidden';
-            purchaseUnitInput.name = items[${index}][purchase_unit_id];
+            purchaseUnitInput.name = `items[${index}][purchase_unit_id]`;
             row.appendChild(purchaseUnitInput);
         }
         purchaseUnitInput.value = product.purchase_unit_id;
