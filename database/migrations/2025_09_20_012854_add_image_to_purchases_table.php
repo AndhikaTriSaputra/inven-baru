@@ -20,7 +20,7 @@ public function down()
 {
     Schema::table('purchases', function (Blueprint $table) {
         $table->dropColumn('image');
-    });
+    });
 }
 
 };

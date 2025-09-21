@@ -6,6 +6,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <title>POS Inventory</title>
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     </head>
     <body class="min-h-screen bg-gray-50 text-gray-800">
         <div class="flex min-h-screen">
@@ -34,9 +35,36 @@
                                 ]
                             ],
                             ['label' => 'Warehouse', 'href' => url('/app/warehouses'), 'active' => request()->is('app/warehouses*'), 'icon' => 'store'],
-                            ['label' => 'Adjustment', 'href' => url('/app/adjustments'), 'active' => request()->is('app/adjustments*'), 'icon' => 'wrench', 'drawer' => 'adjustments'],
-                            ['label' => 'Purchases', 'href' => url('/app/purchases'), 'active' => request()->is('app/purchases*'), 'icon' => 'receipt', 'drawer' => 'purchases'],
-                            ['label' => 'Transfer', 'href' => url('/app/transfers'), 'active' => request()->is('app/transfers*'), 'icon' => 'transfer', 'drawer' => 'transfers'],
+                            [
+                                'label' => 'Adjustment', 
+                                'href' => url('/app/adjustments'), 
+                                'active' => request()->is('app/adjustments*'), 
+                                'icon' => 'wrench',
+                                'submenu' => [
+                                    ['label' => 'Create Adjustment', 'href' => url('/app/adjustments/create'), 'active' => request()->is('app/adjustments/create'), 'icon' => 'create'],
+                                    ['label' => 'All Adjustments', 'href' => url('/app/adjustments'), 'active' => request()->is('app/adjustments') && !request()->is('app/adjustments/create'), 'icon' => 'all'],
+                                ]
+                            ],
+                            [
+                                'label' => 'Purchases', 
+                                'href' => url('/app/purchases'), 
+                                'active' => request()->is('app/purchases*'), 
+                                'icon' => 'receipt',
+                                'submenu' => [
+                                    ['label' => 'Create Purchase', 'href' => url('/app/purchases/create'), 'active' => request()->is('app/purchases/create'), 'icon' => 'create'],
+                                    ['label' => 'All Purchases', 'href' => url('/app/purchases'), 'active' => request()->is('app/purchases') && !request()->is('app/purchases/create'), 'icon' => 'all'],
+                                ]
+                            ],
+                            [
+                                'label' => 'Transfer', 
+                                'href' => url('/app/transfers'), 
+                                'active' => request()->is('app/transfers*'), 
+                                'icon' => 'transfer',
+                                'submenu' => [
+                                    ['label' => 'Create Transfer', 'href' => url('/app/transfers/create'), 'active' => request()->is('app/transfers/create'), 'icon' => 'create'],
+                                    ['label' => 'All Transfers', 'href' => url('/app/transfers'), 'active' => request()->is('app/transfers') && !request()->is('app/transfers/create'), 'icon' => 'all'],
+                                ]
+                            ],
                         ];
                     @endphp
                     <ul class="flex flex-col gap-6 mt-2">
@@ -45,37 +73,7 @@
                                 @if(isset($item['submenu']))
                                     <!-- Main item with submenu -->
                                     <div class="relative">
-                                        <button onclick="openQuickMenu('products')" data-sidebar-item="products" data-active="{{ $item['active'] ? 1 : 0 }}" class="relative flex flex-col items-center text-[11px] text-gray-600 hover:text-violet-600 w-full sidebar-item">
-                                            <span class="absolute left-0 top-1/2 -translate-y-1/2 h-10 w-1 rounded-r bg-violet-500 sidebar-active-indicator @if(!$item['active']) hidden @endif"></span>
-                                            <span class="mb-2 rounded-lg h-12 w-12 flex items-center justify-center border sidebar-icon {{ $item['active'] ? 'border-violet-300 text-violet-600 bg-violet-50' : 'border-gray-200 bg-white' }}">
-                                                @switch($item['icon'])
-                                                    @case('dashboard')
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l9-9 9 9M4.5 10.5V21h5.25v-6h4.5v6H19.5V10.5"/></svg>
-                                                        @break
-                                                    @case('bookmark')
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 4.5h12v15L12 15l-6 4.5v-15z"/></svg>
-                                                        @break
-                                                    @case('store')
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9l1.5-4.5h15L21 9M4.5 9H21v10.5H3V9h1.5zm3 0v10.5m7.5-10.5v10.5"/></svg>
-                                                        @break
-                                                    @case('wrench')
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.25 6.75a3.75 3.75 0 11-4.5 4.5L3 18.75 5.25 21l6.75-6.75a3.75 3.75 0 004.5-4.5l-2.25-3z"/></svg>
-                                                        @break
-                                                    @case('receipt')
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 3.75h12v16.5l-3-1.5-3 1.5-3-1.5-3 1.5V3.75zM8.25 7.5h7.5M8.25 10.5h7.5M8.25 13.5h4.5"/></svg>
-                                                        @break
-                                                    @case('transfer')
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7.5 12h9m0 0l-3-3m3 3l-3 3M6 6h3M6 18h3"/></svg>
-                                                        @break
-                                                @endswitch
-                                            </span>
-                                            <span class="block text-center leading-tight sidebar-text {{ $item['active'] ? 'text-violet-600' : '' }}">{{ $item['label'] }}</span>
-                                        </button>
-                                    </div>
-                                @elseif(isset($item['drawer']))
-                                    <!-- Item that opens right drawer instead of direct navigate -->
-                                    <div class="relative">
-                                        <button onclick="openQuickMenu('{{ $item['drawer'] }}')" data-sidebar-item="{{ $item['drawer'] }}" data-active="{{ $item['active'] ? 1 : 0 }}" class="relative flex flex-col items-center text-[11px] text-gray-600 hover:text-violet-600 w-full sidebar-item">
+                                        <button onclick="openQuickMenu('{{ $item['label'] }}')" data-sidebar-item="{{ strtolower($item['label']) }}" data-active="{{ $item['active'] ? 1 : 0 }}" class="relative flex flex-col items-center text-[11px] text-gray-600 hover:text-violet-600 w-full sidebar-item cursor-pointer">
                                             <span class="absolute left-0 top-1/2 -translate-y-1/2 h-10 w-1 rounded-r bg-violet-500 sidebar-active-indicator @if(!$item['active']) hidden @endif"></span>
                                             <span class="mb-2 rounded-lg h-12 w-12 flex items-center justify-center border sidebar-icon {{ $item['active'] ? 'border-violet-300 text-violet-600 bg-violet-50' : 'border-gray-200 bg-white' }}">
                                                 @switch($item['icon'])
@@ -139,7 +137,15 @@
                 </nav>
                 
                 <!-- Right Drawer Submenu (populated via templates) -->
-                <div id="quickMenu" class="fixed top-16 left-24 bottom-0 w-80 bg-white border-l border-gray-200 shadow-2xl transform opacity-0 invisible transition-all duration-300 ease-in-out z-50">
+                <div id="quickMenu" class="fixed top-16 left-24 bottom-0 w-80 bg-white border-l border-gray-200 shadow-2xl transform opacity-0 invisible transition-all duration-300 ease-in-out z-[9999]">
+                    <div class="flex items-center justify-between p-4 border-b border-gray-200">
+                        <h2 class="text-lg font-semibold text-gray-900">Quick Menu</h2>
+                        <button onclick="closeQuickMenu()" class="p-1 rounded-lg hover:bg-gray-100 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
                     <div id="quickMenuBody" class="p-6 space-y-6"></div>
                 </div>
             </aside>
@@ -175,46 +181,40 @@
                             <span id="fullscreen-text">Fullscreen</span>
                         </button>
 
-                        <!-- Language Switcher -->
+                        <!-- Language Switcher (Disabled) -->
                         <div class="relative">
-                            <button onclick="toggleLanguageMenu()" class="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors duration-200">
+                            <button disabled class="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-400 cursor-not-allowed opacity-50" title="Language switching temporarily disabled">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/>
                                 </svg>
-                                <span>{{ session('app_locale', 'en') == 'en' ? 'English' : 'Bahasa Indonesia' }}</span>
+                                <span>Bahasa Indonesia</span>
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                                 </svg>
                             </button>
-                            
-                            <!-- Language Dropdown -->
-                            <div id="language-menu" class="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg transform opacity-0 invisible transition-all duration-200 ease-in-out z-50">
-                                <div class="py-1">
-                                    <a href="{{ route('lang.switch', 'en') }}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-violet-50 hover:text-violet-600 transition-colors duration-200 {{ session('app_locale', 'en') == 'en' ? 'bg-violet-50 text-violet-600' : '' }}">
-                                        <span class="mr-3">🇺🇸</span>
-                                        English
-                                        @if(session('app_locale', 'en') == 'en')
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                            </svg>
-                                        @endif
-                                    </a>
-                                    <a href="{{ route('lang.switch', 'id') }}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-violet-50 hover:text-violet-600 transition-colors duration-200 {{ session('app_locale', 'en') == 'id' ? 'bg-violet-50 text-violet-600' : '' }}">
-                                        <span class="mr-3">🇮🇩</span>
-                                        Bahasa Indonesia
-                                        @if(session('app_locale', 'en') == 'id')
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                            </svg>
-                                        @endif
-                                    </a>
-                                </div>
-                            </div>
                         </div>
+
+                        <!-- Approval Notification -->
+                        @php
+                            $needApproval = \App\Models\Product::where('is_active', 0)->count();
+                        @endphp
+                        @if(auth()->user()->role_id == 1)
+                            <div class="relative">
+                                <button onclick="toggleApprovalModal()" class="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors duration-200">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5-5-5h5v-5a7.5 7.5 0 00-15 0v5h5l-5 5-5-5h5v-5a7.5 7.5 0 0115 0v5z"/>
+                                    </svg>
+                                    <span>Need Approval</span>
+                                    @if($needApproval > 0)
+                                        <span class="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full">{{ $needApproval }}</span>
+                                    @endif
+                                </button>
+                            </div>
+                        @endif
 
                         <!-- Profile Menu -->
                         <div class="relative">
-                            <button onclick="toggleProfileMenu()" class="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors duration-200">
+                            <button onclick="toggleProfileMenu()" class="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors duration-200 cursor-pointer">
                                 <div class="h-8 w-8 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center font-semibold text-sm">
                                     {{ substr(auth()->user()->name ?? 'U', 0, 1) }}
                                 </div>
@@ -263,6 +263,90 @@
                 @stack('scripts')
             </main>
         </div>
+
+        <!-- Approval Modal -->
+        @if(auth()->user()->role_id == 1)
+            <div id="approvalModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
+                <div class="relative top-20 mx-auto p-5 border w-4/5 max-w-6xl shadow-lg rounded-md bg-white">
+                    <div class="mt-3">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-medium text-gray-900">Product Approval</h3>
+                            <button onclick="toggleApprovalModal()" class="text-gray-400 hover:text-gray-600">
+                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="mt-2">
+                            <p class="text-sm text-gray-500 mb-4">
+                                Pending approval: {{ $needApproval }}
+                            </p>
+                            @if($needApproval > 0)
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full bg-white border border-gray-200">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Name</th>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Brand</th>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            @foreach(\App\Models\Product::where('is_active', 0)->take(10)->get() as $product)
+                                                <tr class="hover:bg-gray-50">
+                                                    <td class="px-4 py-4 whitespace-nowrap">
+                                                        @if($product->image)
+                                                            <img src="{{ asset('images/products/' . explode(',', $product->image)[0]) }}" alt="{{ $product->name }}" class="h-10 w-10 object-cover rounded">
+                                                        @else
+                                                            <div class="h-10 w-10 bg-gray-200 rounded flex items-center justify-center">
+                                                                <svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                                                </svg>
+                                                            </div>
+                                                        @endif
+                                                    </td>
+                                                    <td class="px-4 py-4 whitespace-nowrap">
+                                                        <div class="text-sm font-medium text-gray-900">{{ $product->name }}</div>
+                                                        <div class="text-sm text-red-600">Pending Approval</div>
+                                                    </td>
+                                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{{ $product->type }}</td>
+                                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{{ $product->code }}</td>
+                                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                        @if($product->brand_id)
+                                                            {{ \App\Models\Brand::find($product->brand_id)->name ?? 'N/A' }}
+                                                        @else
+                                                            N/A
+                                                        @endif
+                                                    </td>
+                                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">0</td>
+                                                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                                                        <div class="flex space-x-2">
+                                                            <button onclick="approveProduct({{ $product->id }})" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow-md border border-green-700">
+                                                                ✓ Approve
+                                                            </button>
+                                                            <button onclick="rejectProduct({{ $product->id }})" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow-md border border-red-700">
+                                                                ✗ Reject
+                                                            </button>
+                                                        </div>
+                                                        <!-- Debug: Product ID {{ $product->id }} -->
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @else
+                                <p class="text-sm text-gray-500 text-center py-4">No products pending approval.</p>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
         
     </body>
     
@@ -295,70 +379,103 @@
                 qm.classList.add('opacity-0','invisible');
             }
         }
-        // Quick Menu templates (rendered server-side for convenience)
-        const QUICK_MENU_TEMPLATES = {
-            products: `
-                <a href="{{ url('/app/products/create') }}" class="flex items-center gap-3 text-gray-700 hover:text-violet-600">
+
+        function openQuickMenu(kind){
+            console.log('Opening quick menu for:', kind);
+            const qm = document.getElementById('quickMenu');
+            const body = document.getElementById('quickMenuBody');
+            if(!qm || !body) {
+                console.error('Quick menu elements not found');
+                return;
+            }
+            
+            // Create submenu HTML based on the kind (convert to lowercase for comparison)
+            let submenuHTML = '';
+            const menuType = kind.toLowerCase();
+            
+            if (menuType === 'products') {
+                submenuHTML = `
+                    <div class="space-y-2">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Products Menu</h3>
+                        <a href="{{ url('/app/products/create') }}" class="flex items-center gap-3 text-gray-700 hover:text-violet-600 p-3 rounded-lg hover:bg-violet-50 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12M6 12h12"/></svg>
                     <span class="text-base">Create Product</span>
                 </a>
-                <a href="{{ url('/app/products') }}" class="flex items-center gap-3 text-gray-700 hover:text-violet-600">
+                        <a href="{{ url('/app/products') }}" class="flex items-center gap-3 text-gray-700 hover:text-violet-600 p-3 rounded-lg hover:bg-violet-50 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6M9 16h6M6 5h7l5 5v9H6z"/></svg>
                     <span class="text-base">All Products</span>
                 </a>
-                <a href="{{ url('/app/products/labels') }}" class="flex items-center gap-3 text-gray-700 hover:text-violet-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 21v-4a2 2 0 012-2h4a2 2 0 012 2v4"/></svg>
-                    <span class="text-base">Print Labels</span>
-                </a>
-                <a href="{{ url('/app/products/stock-count') }}" class="flex items-center gap-3 text-gray-700 hover:text-violet-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <span class="text-base">Count Stock</span>
-                </a>
-                <a href="{{ url('/app/categories') }}" class="flex items-center gap-3 text-gray-700 hover:text-violet-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h10M4 18h8"/></svg><span class="text-base">Category</span></a>
-                <a href="{{ url('/app/brands') }}" class="flex items-center gap-3 text-gray-700 hover:text-violet-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6l7 6-7 6-7-6z"/></svg><span class="text-base">Brand</span></a>
-                <a href="{{ url('/app/units') }}" class="flex items-center gap-3 text-gray-700 hover:text-violet-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4v10l8 4 8-4z"/></svg><span class="text-base">Unit</span></a>
-            `,
-            adjustments: `
-                <a href="{{ route('adjustments.create') }}" class="flex items-center gap-3 text-gray-700 hover:text-violet-600">
+                        <a href="{{ url('/app/products/labels') }}" class="flex items-center gap-3 text-gray-700 hover:text-violet-600 p-3 rounded-lg hover:bg-violet-50 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2M7 4h10M7 4l-2 16h14l-2-16M9 8h6M9 12h6M9 16h6"/></svg>
+                            <span class="text-base">Print Labels</span>
+                        </a>
+                        <a href="{{ url('/app/products/stock-count') }}" class="flex items-center gap-3 text-gray-700 hover:text-violet-600 p-3 rounded-lg hover:bg-violet-50 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                            <span class="text-base">Count Stock</span>
+                        </a>
+                        <a href="{{ url('/app/categories') }}" class="flex items-center gap-3 text-gray-700 hover:text-violet-600 p-3 rounded-lg hover:bg-violet-50 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h10M4 18h8"/></svg>
+                            <span class="text-base">Category</span>
+                        </a>
+                        <a href="{{ url('/app/brands') }}" class="flex items-center gap-3 text-gray-700 hover:text-violet-600 p-3 rounded-lg hover:bg-violet-50 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6l7 6-7 6-7-6z"/></svg>
+                            <span class="text-base">Brand</span>
+                        </a>
+                        <a href="{{ url('/app/units') }}" class="flex items-center gap-3 text-gray-700 hover:text-violet-600 p-3 rounded-lg hover:bg-violet-50 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4v10l8 4 8-4z"/></svg>
+                            <span class="text-base">Unit</span>
+                        </a>
+                    </div>
+                `;
+            } else if (menuType === 'adjustment') {
+                submenuHTML = `
+                    <div class="space-y-2">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Adjustments Menu</h3>
+                        <a href="{{ route('adjustments.create') }}" class="flex items-center gap-3 text-gray-700 hover:text-violet-600 p-3 rounded-lg hover:bg-violet-50 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12M6 12h12"/></svg>
                     <span class="text-base">Create Adjustment</span>
                 </a>
-                <a href="{{ route('adjustments.index') }}" class="flex items-center gap-3 text-gray-700 hover:text-violet-600">
+                        <a href="{{ route('adjustments.index') }}" class="flex items-center gap-3 text-gray-700 hover:text-violet-600 p-3 rounded-lg hover:bg-violet-50 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6M9 16h6M6 5h7l5 5v9H6z"/></svg>
                     <span class="text-base">All Adjustments</span>
                 </a>
-            `,
-            purchases: `
-                <a href="{{ route('purchases.create') }}" class="flex items-center gap-3 text-gray-700 hover:text-violet-600">
+                    </div>
+                `;
+            } else if (menuType === 'purchases') {
+                submenuHTML = `
+                    <div class="space-y-2">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Purchases Menu</h3>
+                        <a href="{{ route('purchases.create') }}" class="flex items-center gap-3 text-gray-700 hover:text-violet-600 p-3 rounded-lg hover:bg-violet-50 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12M6 12h12"/></svg>
                     <span class="text-base">Create Purchase</span>
                 </a>
-                <a href="{{ route('purchases.index') }}" class="flex items-center gap-3 text-gray-700 hover:text-violet-600">
+                        <a href="{{ route('purchases.index') }}" class="flex items-center gap-3 text-gray-700 hover:text-violet-600 p-3 rounded-lg hover:bg-violet-50 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6M9 16h6M6 5h7l5 5v9H6z"/></svg>
                     <span class="text-base">All Purchases</span>
                 </a>
-            `,
-            transfers: `
-                <a href="{{ route('transfers.create') }}" class="flex items-center gap-3 text-gray-700 hover:text-violet-600">
+                    </div>
+                `;
+            } else if (menuType === 'transfer') {
+                submenuHTML = `
+                    <div class="space-y-2">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Transfers Menu</h3>
+                        <a href="{{ route('transfers.create') }}" class="flex items-center gap-3 text-gray-700 hover:text-violet-600 p-3 rounded-lg hover:bg-violet-50 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12M6 12h12"/></svg>
                     <span class="text-base">Create Transfer</span>
                 </a>
-                <a href="{{ route('transfers.index') }}" class="flex items-center gap-3 text-gray-700 hover:text-violet-600">
+                        <a href="{{ route('transfers.index') }}" class="flex items-center gap-3 text-gray-700 hover:text-violet-600 p-3 rounded-lg hover:bg-violet-50 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6M9 16h6M6 5h7l5 5v9H6z"/></svg>
                     <span class="text-base">All Transfers</span>
                 </a>
-            `
-        };
-
-        function openQuickMenu(kind){
-            const qm = document.getElementById('quickMenu');
-            const body = document.getElementById('quickMenuBody');
-            if(!qm || !body) return;
-            body.innerHTML = QUICK_MENU_TEMPLATES[kind] || '';
+                    </div>
+                `;
+            }
+            
+            body.innerHTML = submenuHTML;
             qm.classList.remove('opacity-0','invisible');
 
             // highlight drawer owner item when its drawer is open
-            if (['products','adjustments','purchases','transfers'].includes(kind)){
+            if (['products','adjustment','purchases','transfer'].includes(menuType)){
                 // clear highlight from all items while drawer open
                 document.querySelectorAll('aside .sidebar-item').forEach(item => {
                     const indicator = item.querySelector('.sidebar-active-indicator');
@@ -444,25 +561,20 @@
             }
         }
 
-        // Language menu toggle
-        function toggleLanguageMenu() {
-            const languageMenu = document.getElementById('language-menu');
-            const isVisible = !languageMenu.classList.contains('opacity-0');
-            
-            if (isVisible) {
-                languageMenu.classList.add('opacity-0', 'invisible');
-                languageMenu.classList.remove('opacity-100', 'visible');
-            } else {
-                // Close other menus first
-                closeAllMenus();
-                languageMenu.classList.remove('opacity-0', 'invisible');
-                languageMenu.classList.add('opacity-100', 'visible');
-            }
-        }
+        // Language menu toggle (disabled)
+        // function toggleLanguageMenu() {
+        //     // Language switching temporarily disabled
+        // }
 
         // Profile menu toggle
         function toggleProfileMenu() {
             const profileMenu = document.getElementById('profile-menu');
+            
+            if (!profileMenu) {
+                console.error('Profile menu element not found');
+                return;
+            }
+            
             const isVisible = !profileMenu.classList.contains('opacity-0');
             
             if (isVisible) {
@@ -481,28 +593,98 @@
             const languageMenu = document.getElementById('language-menu');
             const profileMenu = document.getElementById('profile-menu');
             
-            languageMenu.classList.add('opacity-0', 'invisible');
-            languageMenu.classList.remove('opacity-100', 'visible');
+            if (languageMenu) {
+                languageMenu.classList.add('opacity-0', 'invisible');
+                languageMenu.classList.remove('opacity-100', 'visible');
+            }
             
-            profileMenu.classList.add('opacity-0', 'invisible');
-            profileMenu.classList.remove('opacity-100', 'visible');
+            if (profileMenu) {
+                profileMenu.classList.add('opacity-0', 'invisible');
+                profileMenu.classList.remove('opacity-100', 'visible');
+            }
+        }
+
+        // Approval modal toggle
+        function toggleApprovalModal() {
+            const modal = document.getElementById('approvalModal');
+            if (modal) {
+                modal.classList.toggle('hidden');
+            }
+        }
+
+        // Approve product function
+        function approveProduct(productId) {
+            console.log('Approving product:', productId);
+            if (confirm('Are you sure you want to approve this product?')) {
+                fetch(`/app/products/${productId}/approve`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload(); // Reload to update the count
+                    } else {
+                        alert('Error approving product: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error approving product');
+                });
+            }
+        }
+
+        // Reject product function
+        function rejectProduct(productId) {
+            console.log('Rejecting product:', productId);
+            if (confirm('Are you sure you want to reject this product?')) {
+                fetch(`/app/products/${productId}/reject`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload(); // Reload to update the count
+                    } else {
+                        alert('Error rejecting product: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error rejecting product');
+                });
+            }
         }
         
         // Close menus when clicking outside
         document.addEventListener('click', function(event) {
             const languageMenu = document.getElementById('language-menu');
             const profileMenu = document.getElementById('profile-menu');
+            const approvalModal = document.getElementById('approvalModal');
             const languageButton = event.target.closest('button[onclick="toggleLanguageMenu()"]');
             const profileButton = event.target.closest('button[onclick="toggleProfileMenu()"]');
+            const approvalButton = event.target.closest('button[onclick="toggleApprovalModal()"]');
             
-            if (!languageMenu.contains(event.target) && !languageButton) {
+            if (languageMenu && !languageMenu.contains(event.target) && !languageButton) {
                 languageMenu.classList.add('opacity-0', 'invisible');
                 languageMenu.classList.remove('opacity-100', 'visible');
             }
             
-            if (!profileMenu.contains(event.target) && !profileButton) {
+            if (profileMenu && !profileMenu.contains(event.target) && !profileButton) {
                 profileMenu.classList.add('opacity-0', 'invisible');
                 profileMenu.classList.remove('opacity-100', 'visible');
+            }
+
+            if (approvalModal && !approvalModal.contains(event.target) && !approvalButton) {
+                approvalModal.classList.add('hidden');
             }
 
             const qm = document.getElementById('quickMenu');
@@ -528,4 +710,3 @@
     </script>
     <!-- Use Iconify or Unocss icons if present; fallback to text if not -->
 </html>
-

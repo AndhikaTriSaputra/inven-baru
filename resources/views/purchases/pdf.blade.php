@@ -1,36 +1,31 @@
-pdf.blade.php
+invoice.blade.php
 
 @extends('layouts.print')
 
 @section('content')
-<h2>Purchase Report</h2>
-<p><strong>Generated:</strong> {{ date('Y-m-d H:i:s') }}</p>
-<p><strong>Total Records:</strong> {{ count($data) }}</p>
+<h2>Purchase Invoice</h2>
+<p><strong>Date:</strong> {{ $purchase->date }}</p>
+<p><strong>Ref:</strong> {{ $purchase->Ref }}</p>
 <hr>
 <table>
     <thead>
         <tr>
-            <th>Date</th>
-            <th>Item</th>
-            <th>Quantity</th>
-            <th>Category</th>
-            <th>Supplier</th>
-            <th>Warehouse</th>
-            <th>Note</th>
+            <th>Product</th>
+            <th>Qty</th>
+            <th>Cost</th>
+            <th>Total</th>
         </tr>
     </thead>
     <tbody>
-        @foreach($data as $purchase)
+        @foreach($details as $item)
         <tr>
-            <td>{{ $purchase->date }}</td>
-            <td>{{ $purchase->item }}</td>
-            <td>{{ (int)$purchase->qty }}</td>
-            <td>{{ $purchase->category }}</td>
-            <td>{{ $purchase->supplier }}</td>
-            <td>{{ $purchase->warehouse }}</td>
-            <td>{{ $purchase->note }}</td>
+            <td>{{ $item->product_name }}</td>
+            <td>{{ $item->quantity }}</td>
+            <td>Rp {{ number_format($item->cost, 0, ',', '.') }}</td>
+            <td>Rp {{ number_format($item->total, 0, ',', '.') }}</td>
         </tr>
         @endforeach
     </tbody>
 </table>
+<p><strong>Grand Total:</strong> Rp {{ number_format($purchase->GrandTotal, 0, ',', '.') }}</p>
 @endsection

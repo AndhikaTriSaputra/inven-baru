@@ -18,9 +18,16 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'firstname',
+        'lastname',
+        'username',
         'email',
         'password',
+        'phone',
+        'avatar',
+        'role_id',
+        'statut',
+        'is_all_warehouses',
     ];
 
     /**
@@ -44,5 +51,28 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Get the user's full name.
+     */
+    public function getNameAttribute()
+    {
+        return trim($this->firstname . ' ' . $this->lastname);
+    }
+
+    /**
+     * Get the user's role name.
+     */
+    public function getRoleNameAttribute()
+    {
+        $roles = [
+            1 => 'Administrator',
+            2 => 'Manager', 
+            3 => 'Cashier',
+            4 => 'Staff'
+        ];
+        
+        return $roles[$this->role_id] ?? 'Unknown';
     }
 }

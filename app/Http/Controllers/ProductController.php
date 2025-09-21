@@ -51,7 +51,12 @@ class ProductController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('products.index', compact('products'));
+        // Get all products for JavaScript search functionality
+        $allProducts = $this->buildProductsQuery($request)
+            ->orderByDesc('p.id')
+            ->get();
+
+        return view('products.index', compact('products', 'allProducts'));
     }
     
     /** Lightweight search API (used by frontend live search) */

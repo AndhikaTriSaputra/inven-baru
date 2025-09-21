@@ -1,4 +1,4 @@
-print.blade.php
+
 
 @extends('layouts.print')
 

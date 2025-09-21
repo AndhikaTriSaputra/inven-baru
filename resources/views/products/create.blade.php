@@ -129,10 +129,10 @@
                     </label>
                     <div class="relative">
                         <input type="text" name="code" value="{{ old('code') }}" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
-                               class="w-full rounded-lg border-2 border-gray-200 px-3 py-2.5 pr-10 text-sm text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-100 focus:outline-none hover:border-gray-300" 
+                               class="w-full rounded-lg border-2 border-gray-200 px-3 py-2.5 pr-10 text-sm text-gray-900 placeholder-gray-400 transition-all duration-300 focus:border-violet-500 focus:ring-2 focus:ring-violet-100 focus:outline-none hover:border-gray-300" 
                                placeholder="Enter product code" required />
                         <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-                            <button type="button" onclick="generateRandomBarcode()" class="p-1 rounded hover:bg-gray-100 transition-colors duration-200 cursor-pointer" title="Generate random barcode">
+                            <button type="button" id="barcode-generator-btn" onclick="generateRandomBarcode()" class="p-1 rounded hover:bg-gray-100 transition-colors duration-200 cursor-pointer" title="Generate random barcode (PRD + 9 digits)">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 hover:text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
                                 </svg>
@@ -266,7 +266,7 @@
 </div>
 
 
-<div id="tagModal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+<div id="tagModal" class="hidden fixed inset-0 z-50 bg-black/50 items-center justify-center">
     <div class="bg-white p-6 rounded shadow w-96">
         <h2 class="text-lg font-bold mb-2">Create New Tag</h2>
         <input type="text" id="tagName" class="w-full mb-2 p-2 border rounded" placeholder="Enter tag name">
@@ -523,7 +523,6 @@ function submitTag() {
    
 
 </form>
-@endsection
 
 @push('scripts')
 <script>
@@ -572,37 +571,118 @@ document.addEventListener('DOMContentLoaded', function () {
         // Set the value
         codeInput.value = barcode;
         
-        // Visual feedback
+        // Visual feedback with animation
         codeInput.style.borderColor = '#8B5CF6';
         codeInput.style.backgroundColor = '#F3F4F6';
+        codeInput.style.transform = 'scale(1.02)';
+        
         setTimeout(() => {
             codeInput.style.borderColor = '';
             codeInput.style.backgroundColor = '';
+            codeInput.style.transform = '';
         }, 1000);
         
         // Focus on the input
         codeInput.focus();
+        
+        // Show success message
+        console.log('Generated barcode:', barcode);
+        
+        // Optional: Show toast notification
+        showBarcodeNotification(barcode);
     }
     
-    // Make function globally available (triggered by clicking the barcode icon)
+    // Show barcode generation notification
+    function showBarcodeNotification(barcode) {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-all duration-300';
+        notification.innerHTML = `
+            <div class="flex items-center space-x-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <span>Generated: ${barcode}</span>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 300);
+        }, 3000);
+    }
+    
+    // Make function globally available
     window.generateRandomBarcode = generateRandomBarcode;
+    
+    // Debug function to test barcode generation
+    window.debugBarcode = function() {
+        console.log('Testing barcode generation...');
+        const codeInput = document.querySelector('input[name="code"]');
+        console.log('Code input found:', !!codeInput);
+        if (codeInput) {
+            console.log('Current value:', codeInput.value);
+        }
+        generateRandomBarcode();
+    };
+    
+    // Debug function to check button
+    window.debugButton = function() {
+        const button = document.getElementById('barcode-generator-btn');
+        console.log('Button found:', !!button);
+        if (button) {
+            console.log('Button element:', button);
+            console.log('Button onclick:', button.onclick);
+        }
+    };
+
+    // Event listener for barcode button using ID - Multiple fallbacks
+    function attachBarcodeListener() {
+        const barcodeButton = document.getElementById('barcode-generator-btn');
+        if (barcodeButton) {
+            console.log('Barcode button found, attaching listener');
+            barcodeButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Barcode button clicked!');
+                generateRandomBarcode();
+            });
+            return true;
+        } else {
+            console.log('Barcode button not found');
+            return false;
+        }
+    }
+
+    // Try multiple times to attach the listener
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded, trying to attach barcode listener');
+        if (!attachBarcodeListener()) {
+            // Try again after a short delay
+            setTimeout(() => {
+                console.log('Retrying barcode listener attachment');
+                attachBarcodeListener();
+            }, 100);
+        }
+    });
+
+    // Also try when window loads
+    window.addEventListener('load', function() {
+        console.log('Window loaded, trying to attach barcode listener');
+        attachBarcodeListener();
+    });
 
     // Keyboard shortcut for barcode generation (Ctrl+G)
     document.addEventListener('keydown', function(e) {
         if (e.ctrlKey && e.key === 'g') {
             e.preventDefault();
             generateRandomBarcode();
-        }
-    });
-
-    // Alternative event listener for barcode button
-    document.addEventListener('DOMContentLoaded', function() {
-        const barcodeButton = document.querySelector('button[onclick="generateRandomBarcode()"]');
-        if (barcodeButton) {
-            barcodeButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                generateRandomBarcode();
-            });
         }
     });
 
@@ -731,3 +811,4 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endpush
+@endsection

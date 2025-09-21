@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -11,28 +12,49 @@ class AuthController extends Controller
         return view('auth.login');
     }
 
-   public function login(Request $request)
+//    public function login(Request $request)
+// {
+//     // validasi input
+//     $credentials = $request->validate([
+//         'email' => 'required|email',
+//         'password' => 'required',
+//     ]);
+
+//     // cek kredensial
+//    if (Auth::attempt($credentials)) {
+//     $request->session()->regenerate();
+//     return redirect()->intended('/app/dashboard');
+// }
+
+// Auth::logout();
+
+
+//     // kalau gagal
+//     return back()->withErrors([
+//         'email' => 'Email atau password salah.',
+//     ]);
+// }
+
+public function login(Request $request)
 {
-    // validasi input
     $credentials = $request->validate([
         'email' => 'required|email',
         'password' => 'required',
     ]);
 
-    // cek kredensial
-   if (Auth::attempt($credentials)) {
-    $request->session()->regenerate();
-    return redirect()->intended('/app/dashboard');
-}
+    if (Auth::attempt($credentials)) {
+        $request->session()->regenerate();
+        return redirect()->intended('/app/dashboard');
+    }
 
-Auth::logout();
+    // Debug tambahan
+    logger()->error('Login failed for email: ' . $request->email);
 
-
-    // kalau gagal
     return back()->withErrors([
         'email' => 'Email atau password salah.',
     ]);
 }
+
 
 public function logout(Request $request)
 {

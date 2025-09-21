@@ -1,4 +1,4 @@
-export-pdf.blade.php
+
 
 @php
     $supplier = DB::table('providers')->where('id',$purchase->provider_id)->first();
