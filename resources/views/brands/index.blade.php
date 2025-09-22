@@ -7,7 +7,7 @@
             <h1 class="text-2xl font-semibold text-gray-800">Brand</h1>
             <div class="text-sm text-gray-500">Products / Brand</div>
         </div>
-        <button id="openBrandModal" type="button" class="px-4 py-2 rounded-full bg-violet-600 text-white hover:bg-violet-500">Create</button>
+        <a href="{{ route('brands.create') }}" class="px-4 py-2 rounded-full bg-violet-600 text-white hover:bg-violet-500">Create</a>
     </div>
 
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100">
@@ -73,8 +73,9 @@
                     <div>
                         <label class="block text-sm text-gray-700 mb-1">Brand Image</label>
                         <input id="brandImage" name="image" type="file" accept="image/*" class="w-full text-sm">
-                        <div class="mt-2">
+                        <div class="mt-2 relative w-max">
                             <img id="brandImagePreview" src="" alt="preview" class="hidden w-20 h-20 rounded object-cover border">
+                            <button type="button" id="brandImageClear" class="hidden absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 text-xs">×</button>
                         </div>
                     </div>
                 </div>
@@ -111,8 +112,9 @@
                     <div>
                         <label class="block text-sm text-gray-600 mb-1">Brand Image</label>
                         <input id="editBrandImage" name="image" type="file" accept="image/*" class="w-full text-sm">
-                        <div class="mt-2">
+                        <div class="mt-2 relative w-max">
                             <img id="editBrandImagePreview" src="" alt="preview" class="hidden w-20 h-20 rounded object-cover border">
+                            <button type="button" id="editBrandImageClear" class="hidden absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 text-xs">×</button>
                         </div>
                     </div>
                 </div>
@@ -133,6 +135,7 @@
 @push('scripts')
 <script>
     (function(){
+        const ASSET_BASE = "{{ asset('') }}"; // ends with '/'
         const raw = @json(($brands ?? []));
         const data = (raw || []).map(r => ({
             id: r.id,
@@ -184,20 +187,31 @@
                 tr.className = 'border-b border-gray-100';
                 tr.innerHTML = `
                     <td class="py-3 px-4"><input type="checkbox" class="rounded"></td>
-                    <td class="py-3 px-4">${r.image ? `<img src="${r.image}" alt="brand" class="w-10 h-10 rounded object-cover">` : `<div class=\"w-10 h-10 rounded bg-gray-100 border border-dashed flex items-center justify-center text-gray-400\">\uD83D\uDDBC\uFE0F</div>`}</td>
+                    <td class="py-3 px-4">
+                        ${r.image ? `
+                            <img src="${ASSET_BASE}${r.image}" alt="brand" class="w-10 h-10 rounded object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div style="display:none" class=\"w-10 h-10 rounded bg-gray-100 border border-dashed flex items-center justify-center text-gray-400\">🖼️</div>
+                        ` : `
+                            <div class=\"w-10 h-10 rounded bg-gray-100 border border-dashed flex items-center justify-center text-gray-400\">🖼️</div>
+                        `}
+                    </td>
                     <td class="py-3 px-4 text-gray-700">${r.name}</td>
                     <td class="py-3 px-4 text-gray-700">${r.description}</td>
                     <td class="py-3 px-4">
-                        <button data-action="edit" data-id="${r.id}" data-name="${r.name}" data-description="${r.description}" data-image="${r.image || ''}" class="text-emerald-600 hover:text-emerald-500 mr-3">
+                        <a href="/app/brands/${r.id}/edit" class="text-emerald-600 hover:text-emerald-500 mr-3" aria-label="Edit">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                             </svg>
-                        </button>
-                        <button data-action="delete" data-id="${r.id}" class="text-red-600 hover:text-red-500">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                            </svg>
-                        </button>
+                        </a>
+                        <form method="POST" action="/app/brands/${r.id}" onsubmit="return confirm('Delete this brand?')" class="inline">
+                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="_method" value="DELETE">
+                            <button type="submit" class="text-red-600 hover:text-red-500" aria-label="Delete">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                            </button>
+                        </form>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -241,7 +255,7 @@
             document.getElementById('editBrandDescription').value = description || '';
             document.getElementById('editBrandForm').action = `/app/brands/${id}`;
             if(image) {
-                document.getElementById('editBrandImagePreview').src = image;
+                document.getElementById('editBrandImagePreview').src = ASSET_BASE + image;
                 document.getElementById('editBrandImagePreview').classList.remove('hidden');
             } else {
                 document.getElementById('editBrandImagePreview').classList.add('hidden');
@@ -250,11 +264,11 @@
         }
         function closeEdit(){ editModal.classList.add('hidden'); }
         
-        openBtn.addEventListener('click', open);
-        closeBtn.addEventListener('click', close);
-        cancelBtn.addEventListener('click', close);
-        closeEditBtn.addEventListener('click', closeEdit);
-        cancelEditBtn.addEventListener('click', closeEdit);
+        if (openBtn) openBtn.addEventListener('click', open);
+        if (closeBtn) closeBtn.addEventListener('click', close);
+        if (cancelBtn) cancelBtn.addEventListener('click', close);
+        if (closeEditBtn) closeEditBtn.addEventListener('click', closeEdit);
+        if (cancelEditBtn) cancelEditBtn.addEventListener('click', closeEdit);
         modal.addEventListener('click', (e)=>{ if(e.target===modal){ close(); }});
         editModal.addEventListener('click', (e)=>{ if(e.target===editModal){ closeEdit(); }});
         document.addEventListener('keydown', (e)=>{ 
@@ -262,7 +276,7 @@
             if(!editModal.classList.contains('hidden') && e.key==='Escape'){ closeEdit(); }
         });
 
-        form.addEventListener('submit', async (e)=>{
+        if (form) form.addEventListener('submit', async (e)=>{
             e.preventDefault();
             const formData = new FormData(form);
             const response = await fetch(form.action, {
@@ -288,24 +302,42 @@
         // Image preview
         const inputImage = document.getElementById('brandImage');
         const preview = document.getElementById('brandImagePreview');
+        const clearBtn = document.getElementById('brandImageClear');
         inputImage.addEventListener('change', ()=>{
             const file = inputImage.files && inputImage.files[0];
-            if(!file){ preview.classList.add('hidden'); preview.src=''; return; }
+            if(!file){ preview.classList.add('hidden'); preview.src=''; if(clearBtn) clearBtn.classList.add('hidden'); return; }
             const reader = new FileReader();
-            reader.onload = ()=>{ preview.src = reader.result; preview.classList.remove('hidden'); };
+            reader.onload = ()=>{ preview.src = reader.result; preview.classList.remove('hidden'); if(clearBtn) clearBtn.classList.remove('hidden'); };
             reader.readAsDataURL(file);
         });
+        if (clearBtn){
+            clearBtn.addEventListener('click', ()=>{
+                inputImage.value = '';
+                preview.src = '';
+                preview.classList.add('hidden');
+                clearBtn.classList.add('hidden');
+            });
+        }
         
         // Edit image preview
         const editInputImage = document.getElementById('editBrandImage');
         const editPreview = document.getElementById('editBrandImagePreview');
+        const editClearBtn = document.getElementById('editBrandImageClear');
         editInputImage.addEventListener('change', ()=>{
             const file = editInputImage.files && editInputImage.files[0];
             if(!file){ return; }
             const reader = new FileReader();
-            reader.onload = ()=>{ editPreview.src = reader.result; editPreview.classList.remove('hidden'); };
+            reader.onload = ()=>{ editPreview.src = reader.result; editPreview.classList.remove('hidden'); if(editClearBtn) editClearBtn.classList.remove('hidden'); };
             reader.readAsDataURL(file);
         });
+        if (editClearBtn){
+            editClearBtn.addEventListener('click', ()=>{
+                editInputImage.value = '';
+                editPreview.src = '';
+                editPreview.classList.add('hidden');
+                editClearBtn.classList.add('hidden');
+            });
+        }
         
         // Delete function
         function deleteBrand(id) {
@@ -338,23 +370,7 @@
         window.closeEdit = closeEdit;
         window.deleteBrand = deleteBrand;
         
-        // Event delegation for action buttons
-        tbody.addEventListener('click', function(e) {
-            const button = e.target.closest('button[data-action]');
-            if (!button) return;
-            
-            const action = button.getAttribute('data-action');
-            const id = button.getAttribute('data-id');
-            
-            if (action === 'edit') {
-                const name = button.getAttribute('data-name');
-                const description = button.getAttribute('data-description');
-                const image = button.getAttribute('data-image');
-                openEdit(id, name, description, image);
-            } else if (action === 'delete') {
-                deleteBrand(id);
-            }
-        });
+        // Event delegation no longer needed for edit/delete buttons rendered as link/form
         
         // Edit form submission
         const editForm = document.getElementById('editBrandForm');
@@ -388,4 +404,3 @@
     })();
 </script>
 @endpush
-

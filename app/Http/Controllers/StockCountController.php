@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Validator;
 
 class StockCountController extends Controller
@@ -15,6 +17,21 @@ class StockCountController extends Controller
      */
     public function index(Request $request): View
     {
+        // If stock_counts table doesn't exist yet, return empty paginator gracefully
+        if (!Schema::hasTable('stock_counts')) {
+            $page = (int) $request->query('page', 1);
+            $stockCounts = new LengthAwarePaginator(collect(), 0, 10, $page, [
+                'path' => $request->url(),
+                'query' => $request->query(),
+            ]);
+
+            $warehouses = Schema::hasTable('warehouses')
+                ? DB::table('warehouses')->select('id', 'name')->get()
+                : collect();
+
+            return view('products.stock-count', compact('stockCounts', 'warehouses'));
+        }
+
         $query = DB::table('stock_counts as sc')
             ->leftJoin('warehouses as w', 'w.id', '=', 'sc.warehouse_id')
             ->select('sc.*', 'w.name as warehouse_name')
@@ -33,7 +50,9 @@ class StockCountController extends Controller
         $stockCounts = $query->paginate(10)->withQueryString();
         
         // Get warehouses for the create modal
-        $warehouses = DB::table('warehouses')->select('id', 'name')->get();
+        $warehouses = Schema::hasTable('warehouses')
+            ? DB::table('warehouses')->select('id', 'name')->get()
+            : collect();
 
         return view('products.stock-count', compact('stockCounts', 'warehouses'));
     }

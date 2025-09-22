@@ -25,6 +25,21 @@ class UserSeeder extends Seeder
                 'is_all_warehouses' => 1,
             ]
         );
+
+        // Regular user (non-admin)
+        User::updateOrCreate(
+            ['email' => 'user@example.com'],
+            [
+                'firstname' => 'Regular',
+                'lastname' => 'User',
+                'username' => 'user',
+                'password' => 'password', // Will be hashed via cast or mutator
+                'phone' => '08111111111',
+                'role_id' => 2, // non-admin role
+                'statut' => 1,
+                'is_all_warehouses' => 0,
+            ]
+        );
     }
 }
 

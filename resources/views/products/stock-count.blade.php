@@ -1,7 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="bg-white border border-gray-200 rounded-lg p-6">
+<div class="min-h-screen bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="bg-white border border-gray-200 rounded-lg p-6">
     <!-- Success Message -->
     @if (session('success'))
     <div class="mb-6 rounded-2xl border border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 text-green-800 px-6 py-4 shadow-sm">

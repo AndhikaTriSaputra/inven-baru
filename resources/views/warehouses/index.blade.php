@@ -5,13 +5,14 @@ Warehouses
 @endsection
 
 @section('content')
-<div class="bg-white border border-gray-200 rounded-lg p-6">
-    <div class="flex items-center justify-between mb-4">
+<x-ui.card>
+    <div class="flex items-center justify-between mb-6">
         <div class="flex items-baseline gap-3">
-            <h3 class="text-2xl font-semibold">Warehouse</h3>
-            <div class="text-xs text-slate-500">Settings | Warehouse</div>
+            <h1 class="text-2xl font-semibold text-gray-900">Warehouse</h1>
+            <div class="text-sm text-gray-500">Settings | Warehouse</div>
         </div>
-        <button type="button" onclick="openCreateWarehouse()" class="px-4 py-2 bg-violet-600 text-white rounded-lg text-sm flex items-center gap-2">
+        
+        <button type="button" onclick="openCreateWarehouse()" class="px-4 py-2 bg-violet-600 text-white rounded-lg text-sm flex items-center gap-2 hover:bg-violet-700 transition-colors duration-200">
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14"/></svg>
             Create
         </button>
@@ -68,11 +69,11 @@ Warehouses
         </table>
     </div>
     <div class="mt-4">{!! $warehouses->links('pagination::simple-tailwind') !!}</div>
-</div>
+</x-ui.card>
 
 <!-- Create Modal -->
 <div id="whCreateBackdrop" class="fixed inset-0 bg-black/40 z-40 hidden"></div>
-<div id="whCreateModal" class="fixed inset-0 z-50 flex items-start justify-center pt-16 hidden">
+<div id="whCreateModal" class="fixed inset-0 z-50 items-start justify-center pt-16 hidden" style="display: none;">
     <div class="bg-white w-full max-w-3xl rounded-lg shadow-xl border border-gray-200">
         <div class="flex items-center justify-between px-5 py-3 border-b">
             <div class="font-semibold">Create</div>

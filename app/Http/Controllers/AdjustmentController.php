@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Log;
 
 class AdjustmentController extends Controller
 {
@@ -215,7 +217,7 @@ class AdjustmentController extends Controller
         ]);
 
         $id = DB::table('adjustments')->insertGetId([
-            'user_id' => auth()->id() ?: 1,
+            'user_id' => (Auth::id() ?? 1),
             'date' => $request->date,
             'Ref' => $request->Ref,
             'warehouse_id' => (int) $request->warehouse_id,
@@ -279,28 +281,43 @@ class AdjustmentController extends Controller
     /** AJAX: search products by code or name */
     public function productSearch(Request $request)
     {
-        $q = trim($request->get('q',''));
-        $limit = max(1, (int)$request->get('limit', 20));
-        $rows = DB::table('products')
-            ->select('id','code','name')
-            ->when($q !== '', function($qq) use ($q){
-                $qq->where(function($w) use ($q){
-                    $w->where('code','like',"%$q%")
-                      ->orWhere('name','like',"%$q%");
+        try {
+            // Fail fast if products table/columns are not available to prevent 500s
+            if (!Schema::hasTable('products')) {
+                return response()->json([]);
+            }
+            // If either column is missing, don't query
+            if (!Schema::hasColumn('products','id') || !Schema::hasColumn('products','name')) {
+                return response()->json([]);
+            }
+            // Some databases may use `code` column; guard its absence gracefully
+            $hasCode = Schema::hasColumn('products','code');
+            $q = trim($request->get('q',''));
+            $limit = max(1, (int)$request->get('limit', 20));
+            $rows = DB::table('products')
+                ->select('id', $hasCode ? 'code' : DB::raw("'' as code"), 'name')
+                ->when($q !== '', function($qq) use ($q){
+                    $qq->where(function($w) use ($q){
+                        $w->where('name','like',"%$q%")
+                          ->orWhere('code','like',"%$q%");
+                    });
+                })
+                ->orderBy($hasCode ? 'code' : 'name')
+                ->limit($limit)
+                ->get()
+                ->map(function($r){
+                    return [
+                        'id' => $r->id,
+                        'code' => $r->code,
+                        'name' => $r->name,
+                        'label' => ($r->code ? ($r->code.' - ') : '').$r->name,
+                    ];
                 });
-            })
-            ->orderBy('code')
-            ->limit($limit)
-            ->get()
-            ->map(function($r){
-                return [
-                    'id' => $r->id,
-                    'code' => $r->code,
-                    'name' => $r->name,
-                    'label' => ($r->code ? ($r->code.' - ') : '').$r->name,
-                ];
-            });
-        return response()->json($rows);
+            return response()->json($rows);
+        } catch (\Throwable $e) {
+            Log::error('adjustments.productSearch failed', ['message' => $e->getMessage()]);
+            return response()->json([]); // fail safe to avoid console 500s
+        }
     }
     // ========== Helpers ==========
 

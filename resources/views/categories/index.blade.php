@@ -1,13 +1,16 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="p-6">
+<x-ui.card>
     <div class="flex items-center justify-between mb-6">
-        <div>
-            <h1 class="text-2xl font-semibold text-gray-800">Category</h1>
+        <div class="flex items-baseline gap-3">
+            <h1 class="text-2xl font-semibold text-gray-900">Category</h1>
             <div class="text-sm text-gray-500">Products / Category</div>
         </div>
-        <button id="openCreateModal" class="px-4 py-2 rounded-full bg-violet-600 text-white hover:bg-violet-500">Create</button>
+        
+        <button id="openCreateModal" class="px-4 py-2 rounded-full bg-violet-600 text-white hover:bg-violet-500 transition-colors duration-200">
+            Create
+        </button>
     </div>
 
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100">
@@ -112,7 +115,7 @@
         </div>
     </div>
     
-</div>
+</x-ui.card>
 @endsection
 
 @push('scripts')

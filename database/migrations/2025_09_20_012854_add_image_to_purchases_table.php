@@ -9,18 +9,20 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-public function up()
-{
-    Schema::table('purchases', function (Blueprint $table) {
-        $table->string('image')->nullable()->after('notes');
-    });
-}
+    public function up()
+    {
+        Schema::table('purchases', function (Blueprint $table) {
+            $table->string('image')->nullable()->after('notes');
+        });
+    }
 
-public function down()
-{
-    Schema::table('purchases', function (Blueprint $table) {
-        $table->dropColumn('image');
-    });
-}
-
+    /**
+     * Reverse the migrations.
+     */
+    public function down()
+    {
+        Schema::table('purchases', function (Blueprint $table) {
+            $table->dropColumn('image');
+        });
+    }
 };

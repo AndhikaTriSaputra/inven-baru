@@ -5,13 +5,13 @@
     <div class="flex items-center justify-between mb-6">
         <h2 class="text-2xl font-bold text-gray-800">Print Labels</h2>
         <div class="flex items-center gap-3">
-            <button onclick="printLabels()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            <button id="printBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                 <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>Print Selected Labels
             </button>
-            <button onclick="selectAll()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+            <button id="selectAllBtn" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
                 Select All
             </button>
-            <button onclick="clearSelection()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+            <button id="clearSelBtn" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
                 Clear Selection
             </button>
         </div>
@@ -38,9 +38,9 @@
                             <option value="out-of-stock">Out of Stock Only</option>
                         </select>
                     </div>
-    </div>
-    </div>
-    </div>
+                </div>
+            </div>
+        </div>
 
         <div class="p-4">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="labelsGrid">
@@ -48,8 +48,13 @@
                 <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                     <div class="flex items-start justify-between mb-3">
                         <div class="flex items-center">
-                            <input type="checkbox" class="product-checkbox mr-3" value="{{ $product->id }}" data-product='{{ json_encode($product) }}'>
-    <div>
+                            <input type="checkbox" class="product-checkbox mr-3" value="{{ $product->id }}"
+                                   data-name="{{ $product->name }}"
+                                   data-code="{{ $product->code }}"
+                                   data-price="{{ $product->price ?? 0 }}"
+                                   data-stock="{{ $product->stock ?? 0 }}"
+                                   data-unit="{{ $product->unit_name ?? 'pcs' }}">
+                            <div>
                                 <h4 class="font-semibold text-gray-800 text-sm">{{ $product->name }}</h4>
                                 <p class="text-xs text-gray-500">{{ $product->category_name ?? 'No Category' }}</p>
                             </div>
@@ -57,7 +62,7 @@
                         <span class="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600">
                             {{ $product->stock ?? 0 }} {{ $product->unit_name ?? 'pcs' }}
                         </span>
-    </div>
+                    </div>
 
                     <div class="space-y-2">
                         <div class="text-xs">
@@ -83,9 +88,9 @@
                 </div>
                 @endforelse
             </div>
-            </div>
         </div>
     </div>
+</div>
 
 <style>
 @media print {
@@ -121,30 +126,52 @@
     font-size: 12px;
 }
 </style>
+@endsection
 
+@push('scripts')
 <script>
+document.addEventListener('DOMContentLoaded', function(){
+    const printBtn = document.getElementById('printBtn');
+    const selectAllBtn = document.getElementById('selectAllBtn');
+    const clearSelBtn = document.getElementById('clearSelBtn');
+
+    if (printBtn) printBtn.addEventListener('click', printLabels);
+    if (selectAllBtn) selectAllBtn.addEventListener('click', selectAll);
+    if (clearSelBtn) clearSelBtn.addEventListener('click', clearSelection);
+});
+
 function selectAll() {
+    console.log('Select All clicked');
     document.querySelectorAll('.product-checkbox').forEach(checkbox => {
         checkbox.checked = true;
     });
+    console.log('All checkboxes selected');
 }
 
 function clearSelection() {
+    console.log('Clear Selection clicked');
     document.querySelectorAll('.product-checkbox').forEach(checkbox => {
         checkbox.checked = false;
     });
+    console.log('All checkboxes cleared');
 }
 
 function printLabels() {
+    console.log('Print Labels clicked');
     const selectedProducts = [];
     document.querySelectorAll('.product-checkbox:checked').forEach(checkbox => {
-        try {
-            const productData = JSON.parse(checkbox.dataset.product);
-            selectedProducts.push(productData);
-        } catch (e) {
-            console.error('Error parsing product data:', e);
-        }
+        const d = checkbox.dataset;
+        selectedProducts.push({
+            id: parseInt(checkbox.value),
+            name: d.name || '',
+            code: d.code || '',
+            price: Number(d.price || 0),
+            stock: Number(d.stock || 0),
+            unit_name: d.unit || 'pcs'
+        });
     });
+
+    console.log('Selected products:', selectedProducts);
 
     if (selectedProducts.length === 0) {
         alert('Please select at least one product to print labels.');
@@ -167,87 +194,82 @@ function printLabels() {
         return;
     }
 
+    console.log('Filtered products for printing:', filteredProducts);
+
     const printWindow = window.open('', '_blank');
-    printWindow.document.write(generateLabelHTML(filteredProducts, labelSize));
+    printWindow.document.open();
+    printWindow.document.write(createPrintContent(filteredProducts, labelSize));
     printWindow.document.close();
-    printWindow.print();
 }
 
 function createPrintContent(products, size) {
-    const sizeClass = `label-${size}`;
+    const sizeClass = 'label-' + size;
     
-    let content = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Product Labels</title>
-        <style>
-            body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
-            .labels-container { display: flex; flex-wrap: wrap; gap: 10px; }
-            .label { 
-                border: 1px solid #000; 
-                padding: 8px; 
-                display: flex; 
-                flex-direction: column; 
-                justify-content: space-between;
-                page-break-inside: avoid;
-            }
-            .label-small { width: 2in; height: 1in; font-size: 8px; }
-            .label-medium { width: 3in; height: 2in; font-size: 10px; }
-            .label-large { width: 4in; height: 3in; font-size: 12px; }
-            .label-header { font-weight: bold; margin-bottom: 4px; }
-            .label-details { font-size: 0.9em; }
-            .label-price { font-weight: bold; color: #2563eb; }
-            .label-stock { font-size: 0.8em; color: #666; }
-            @media print {
-                body { margin: 0; padding: 10px; }
-                .labels-container { gap: 5px; }
-            }
-        </style>
-    </head>
-    <body>
-        <div class="labels-container">
-    `;
+    let content = '<!DOCTYPE html><html><head><title>Product Labels</title>';
+    content += '<style>body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }';
+    content += '.labels-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(3in, 1fr)); gap: 10px; }';
+    content += '.label { border: 1px solid #000; padding: 8px; display: flex; flex-direction: column; justify-content: space-between; page-break-inside: avoid; text-align: center; }';
+    content += '.label-small { width: 2in; height: 1in; font-size: 8px; }';
+    content += '.label-medium { width: 3in; height: 2in; font-size: 10px; }';
+    content += '.label-large { width: 4in; height: 3in; font-size: 12px; }';
+    content += '.label-header { font-weight: bold; margin-bottom: 4px; word-wrap: break-word; }';
+    content += '.label-details { font-size: 0.9em; }';
+    content += '.label-price { font-weight: bold; color: #2563eb; margin-top: 4px; }';
+    content += '.label-stock { font-size: 0.8em; color: #666; margin-top: 2px; }';
+    content += '.barcode-container { margin: 4px 0; }';
+    content += '.barcode { max-width: 100%; height: auto; }';
+    content += '@media print { body { margin: 0; padding: 10px; } .labels-container { gap: 5px; } .label { border: 1px solid #000; } }';
+    content += '</style>';
+    content += '<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"><\/script>';
+    content += '</head><body><div class="labels-container">';
 
     products.forEach(product => {
-        content += `
-            <div class="label ${sizeClass}">
-                <div class="label-header">${product.name}</div>
-                <div class="label-details">
-                    <div>SKU: ${product.sku}</div>
-                    <div class="label-price">Rp ${new Intl.NumberFormat('id-ID').format(product.price)}</div>
-                    <div class="label-stock">Stock: ${product.stock} ${product.unit_name || 'pcs'}</div>
-        </div>
-    </div>
-        `;
+        content += '<div class="label ' + sizeClass + '">';
+        content += '<div class="label-header">' + product.name + '</div>';
+        content += '<div class="label-details">';
+        content += '<div class="barcode-container">';
+        content += '<svg class="barcode" jsbarcode-value="' + (product.code || '') + '" jsbarcode-format="CODE128" jsbarcode-width="2" jsbarcode-height="40" jsbarcode-displayValue="true"></svg>';
+        content += '</div>';
+        content += '<div><strong>SKU:</strong> ' + (product.code || '') + '</div>';
+        content += '<div class="label-price">Rp ' + new Intl.NumberFormat('id-ID').format(product.price || 0) + '</div>';
+        content += '<div class="label-stock">Stock: ' + (product.stock || 0) + ' ' + (product.unit_name || 'pcs') + '</div>';
+        content += '</div></div>';
     });
 
-    content += `
-    </div>
-    </body>
-    </html>
-    `;
+    content += '</div>';
+    content += '<script>document.addEventListener("DOMContentLoaded", function(){';
+    content += 'console.log("Initializing barcodes...");';
+    content += 'try { JsBarcode(".barcode").init(); console.log("Barcodes initialized successfully"); } catch(e) { console.error("Barcode initialization error:", e); }';
+    content += 'setTimeout(function(){ console.log("Opening print dialog..."); window.print(); window.onafterprint = function() { console.log("Print completed, closing window..."); window.close(); }; }, 500);';
+    content += '});<\/script></body></html>';
 
     return content;
 }
 
 // Filter functionality
-document.getElementById('showOptions').addEventListener('change', function() {
-    const filter = this.value;
-    const products = document.querySelectorAll('.product-checkbox');
+document.addEventListener('DOMContentLoaded', function(){
+    const showOptions = document.getElementById('showOptions');
+    if (!showOptions) return;
     
-    products.forEach(checkbox => {
-        const product = JSON.parse(checkbox.dataset.product);
-        const productDiv = checkbox.closest('.border');
+    showOptions.addEventListener('change', function() {
+        const filter = this.value;
+        console.log('Filter changed to:', filter);
+        const products = document.querySelectorAll('.product-checkbox');
         
-        if (filter === 'all') {
-            productDiv.style.display = 'block';
-        } else if (filter === 'low-stock') {
-            productDiv.style.display = product.stock <= 50 ? 'block' : 'none';
-        } else if (filter === 'out-of-stock') {
-            productDiv.style.display = product.stock <= 0 ? 'block' : 'none';
-        }
+        products.forEach(checkbox => {
+            const d = checkbox.dataset;
+            const product = { stock: Number(d.stock || 0) };
+            const productDiv = checkbox.closest('.border');
+            
+            if (filter === 'all') {
+                productDiv.style.display = 'block';
+            } else if (filter === 'low-stock') {
+                productDiv.style.display = product.stock <= 50 ? 'block' : 'none';
+            } else if (filter === 'out-of-stock') {
+                productDiv.style.display = product.stock <= 0 ? 'block' : 'none';
+            }
+        });
     });
 });
 </script>
-@endsection
+@endpush

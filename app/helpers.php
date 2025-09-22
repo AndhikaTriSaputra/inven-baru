@@ -12,5 +12,5 @@ function isProductApproved($productId)
 function isProductPendingApproval($productId)
 {
     // Check if product is pending approval (is inactive)
-    return DB::table('products')->where('id', $productId)->value('is_active') == 0;
+    return DB::table('products')->where('id', $productId)->value('is_active') == 0;
 }

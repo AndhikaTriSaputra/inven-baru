@@ -26,7 +26,8 @@
                                 'icon' => 'bookmark',
                                 'submenu' => [
                                     ['label' => 'Create Product', 'href' => url('/app/products/create'), 'active' => request()->is('app/products/create'), 'icon' => 'create'],
-                                    ['label' => 'All Products', 'href' => url('/app/products'), 'active' => request()->is('app/products') && !request()->is('app/products/create'), 'icon' => 'all'],
+                                    ['label' => 'All Products', 'href' => url('/app/products'), 'active' => request()->is('app/products') && !request()->is('app/products/create') && !request()->is('app/products/pending'), 'icon' => 'all'],
+                                    ['label' => 'Pending Approval', 'href' => url('/app/products/pending'), 'active' => request()->is('app/products/pending*'), 'icon' => 'approval', 'admin_only' => true],
                                     ['label' => 'Print Labels', 'href' => url('/app/products/labels'), 'active' => request()->is('app/products/labels*'), 'icon' => 'print'],
                                     ['label' => 'Count Stock', 'href' => url('/app/products/stock-count'), 'active' => request()->is('app/products/stock-count*'), 'icon' => 'count'],
                                     ['label' => 'Category', 'href' => url('/app/categories'), 'active' => request()->is('app/categories*'), 'icon' => 'category'],
@@ -196,7 +197,36 @@
 
                         <!-- Approval Notification -->
                         @php
-                            $needApproval = \App\Models\Product::where('is_active', 0)->count();
+                            // Count pending products from cache for all users
+                            $needApproval = 0;
+                            $pendingProducts = [];
+                            if (auth()->user()->role_id == 1) {
+                                $users = \App\Models\User::where('role_id', '!=', 1)->get();
+                                foreach ($users as $user) {
+                                    $userPendingProducts = \Cache::get("user_pending_products_{$user->id}", []);
+                                    $needApproval += count($userPendingProducts);
+                                    
+                                    // Enrich with category, brand, unit info
+                                    foreach ($userPendingProducts as $product) {
+                                        $category = \DB::table('categories')->where('id', $product['category_id'])->first();
+                                        $brand = \DB::table('brands')->where('id', $product['brand_id'])->first();
+                                        $unit = \DB::table('units')->where('id', $product['unit_id'])->first();
+                                        
+                                        $product['category'] = $category ? $category->name : 'N/A';
+                                        $product['brand'] = $brand ? $brand->name : 'N/A';
+                                        $product['unit'] = $unit ? $unit->ShortName : 'N/A';
+                                        $product['user_name'] = $user->firstname . ' ' . $user->lastname;
+                                        $product['user_id'] = $user->id;
+                                        
+                                        $pendingProducts[] = $product;
+                                    }
+                                }
+                                
+                                // Sort by created_at
+                                usort($pendingProducts, function($a, $b) {
+                                    return strtotime($b['created_at']) - strtotime($a['created_at']);
+                                });
+                            }
                         @endphp
                         @if(auth()->user()->role_id == 1)
                             <div class="relative">
@@ -296,11 +326,11 @@
                                             </tr>
                                         </thead>
                                         <tbody class="bg-white divide-y divide-gray-200">
-                                            @foreach(\App\Models\Product::where('is_active', 0)->take(10)->get() as $product)
+                                            @foreach($pendingProducts as $product)
                                                 <tr class="hover:bg-gray-50">
                                                     <td class="px-4 py-4 whitespace-nowrap">
-                                                        @if($product->image)
-                                                            <img src="{{ asset('images/products/' . explode(',', $product->image)[0]) }}" alt="{{ $product->name }}" class="h-10 w-10 object-cover rounded">
+                                                        @if($product['image'] ?? false)
+                                                            <img src="{{ asset('images/products/' . explode(',', $product['image'])[0]) }}" alt="{{ $product['name'] ?? 'Product' }}" class="h-10 w-10 object-cover rounded">
                                                         @else
                                                             <div class="h-10 w-10 bg-gray-200 rounded flex items-center justify-center">
                                                                 <svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -310,29 +340,22 @@
                                                         @endif
                                                     </td>
                                                     <td class="px-4 py-4 whitespace-nowrap">
-                                                        <div class="text-sm font-medium text-gray-900">{{ $product->name }}</div>
+                                                        <div class="text-sm font-medium text-gray-900">{{ $product['name'] ?? 'N/A' }}</div>
                                                         <div class="text-sm text-red-600">Pending Approval</div>
                                                     </td>
-                                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{{ $product->type }}</td>
-                                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{{ $product->code }}</td>
-                                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                        @if($product->brand_id)
-                                                            {{ \App\Models\Brand::find($product->brand_id)->name ?? 'N/A' }}
-                                                        @else
-                                                            N/A
-                                                        @endif
-                                                    </td>
-                                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">0</td>
+                                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{{ ucfirst($product['type'] ?? 'N/A') }}</td>
+                                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{{ $product['code'] ?? 'N/A' }}</td>
+                                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{{ $product['brand'] ?? 'N/A' }}</td>
+                                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{{ $product['stock_alert'] ?? 0 }}</td>
                                                     <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
                                                         <div class="flex space-x-2">
-                                                            <button onclick="approveProduct({{ $product->id }})" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow-md border border-green-700">
+                                                            <button onclick="approveProduct('{{ $product['id'] ?? $product['temp_id'] ?? '' }}')" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow-md border border-green-700">
                                                                 ✓ Approve
                                                             </button>
-                                                            <button onclick="rejectProduct({{ $product->id }})" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow-md border border-red-700">
+                                                            <button onclick="rejectProduct('{{ $product['id'] ?? $product['temp_id'] ?? '' }}')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow-md border border-red-700">
                                                                 ✗ Reject
                                                             </button>
                                                         </div>
-                                                        <!-- Debug: Product ID {{ $product->id }} -->
                                                     </td>
                                                 </tr>
                                             @endforeach
@@ -490,7 +513,7 @@
                 });
 
                 // force highlight on owner temporarily
-                const btn = document.querySelector(`button[data-sidebar-item="${kind}"]`);
+                const btn = document.querySelector(`button[data-sidebar-item="${kind.toLowerCase()}"]`);
                 if (btn){
                     const ind = btn.querySelector('.sidebar-active-indicator');
                     const icon = btn.querySelector('.sidebar-icon');
@@ -616,25 +639,21 @@
         function approveProduct(productId) {
             console.log('Approving product:', productId);
             if (confirm('Are you sure you want to approve this product?')) {
-                fetch(`/app/products/${productId}/approve`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload(); // Reload to update the count
-                    } else {
-                        alert('Error approving product: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error approving product');
-                });
+                // Create a form to submit POST request
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/app/products/${productId}/approve`;
+                
+                // Add CSRF token
+                const csrfToken = document.createElement('input');
+                csrfToken.type = 'hidden';
+                csrfToken.name = '_token';
+                csrfToken.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                form.appendChild(csrfToken);
+                
+                // Submit form
+                document.body.appendChild(form);
+                form.submit();
             }
         }
 
@@ -642,25 +661,21 @@
         function rejectProduct(productId) {
             console.log('Rejecting product:', productId);
             if (confirm('Are you sure you want to reject this product?')) {
-                fetch(`/app/products/${productId}/reject`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload(); // Reload to update the count
-                    } else {
-                        alert('Error rejecting product: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error rejecting product');
-                });
+                // Create a form to submit POST request
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/app/products/${productId}/reject`;
+                
+                // Add CSRF token
+                const csrfToken = document.createElement('input');
+                csrfToken.type = 'hidden';
+                csrfToken.name = '_token';
+                csrfToken.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                form.appendChild(csrfToken);
+                
+                // Submit form
+                document.body.appendChild(form);
+                form.submit();
             }
         }
         

@@ -322,6 +322,7 @@
   });
 </script>
 @endsection
+
 <form method="POST" action="{{ route('adjustments.update',$header->id) }}" class="bg-white border border-gray-200 rounded-xl p-6">
   @csrf
   @method('PUT')

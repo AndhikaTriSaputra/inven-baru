@@ -83,7 +83,8 @@ class BrandController extends Controller
      */
     public function edit(Brand $brand): View
     {
-        return view('brands.edit', ['brand' => (array) $brand]);
+        // Use toArray() so attribute keys are preserved for the blade view
+        return view('brands.edit', ['brand' => $brand->toArray()]);
     }
 
     /**

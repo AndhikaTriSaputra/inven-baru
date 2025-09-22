@@ -1,5 +1,3 @@
-
-
 @extends('layouts.app')
 
 @section('header')
@@ -173,9 +171,9 @@ Create Purchase
                         <input id="purchaseImage" type="file" class="hidden" accept="image/*" name="image" />
                     </label>
                 </div>
-                <div id="purchaseImagePreview" class="mt-3 hidden">
-                    <img src="" alt="Preview" class="mx-auto max-h-48">
-
+                <div id="purchaseImagePreview" class="mt-3 hidden relative w-max mx-auto">
+                    <img src="" alt="Preview" class="mx-auto max-h-48 rounded border">
+                    <button type="button" id="purchaseImageRemove" class="hidden absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 text-xs">×</button>
                 </div>
             </div>
         </div>
@@ -297,18 +295,29 @@ document.addEventListener('DOMContentLoaded', function(){
         });
     });
 
-    // Image preview before submit
+    // Image preview with remove
     const input = document.getElementById('purchaseImage');
     const previewWrap = document.getElementById('purchaseImagePreview');
     const previewImg = previewWrap ? previewWrap.querySelector('img') : null;
+    const btnRemove = document.getElementById('purchaseImageRemove');
+    function clearImage(){
+        input.value = '';
+        previewImg.src = '';
+        previewWrap.classList.add('hidden');
+        if (btnRemove) btnRemove.classList.add('hidden');
+    }
+    if (btnRemove){
+        btnRemove.addEventListener('click', clearImage);
+    }
     if (input && previewWrap && previewImg){
         input.addEventListener('change', function(){
             const file = this.files && this.files[0];
-            if (!file) { previewWrap.classList.add('hidden'); return; }
+            if (!file) { clearImage(); return; }
             const reader = new FileReader();
             reader.onload = function(e){
                 previewImg.src = e.target.result;
                 previewWrap.classList.remove('hidden');
+                if (btnRemove) btnRemove.classList.remove('hidden');
             };
             reader.readAsDataURL(file);
         });

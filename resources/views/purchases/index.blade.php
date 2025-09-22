@@ -77,7 +77,17 @@
                         <input type="checkbox" class="rounded border-gray-300 text-violet-600 focus:ring-violet-500">
                     </td>
                     <td class="px-3 py-3">
-                        <div class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center text-[10px] text-gray-400 border">image</div>
+                        @php
+                            $purchaseImages = [];
+                            if (!empty($p->image)) {
+                                $purchaseImages = array_filter(array_map('trim', explode(',', $p->image)));
+                            }
+                        @endphp
+                        @if(!empty($purchaseImages))
+                            <img src="{{ asset('images/purchases/' . $purchaseImages[0]) }}" alt="Purchase Image" class="w-10 h-10 object-cover rounded-xl border">
+                        @else
+                            <div class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center text-[10px] text-gray-400 border">No image</div>
+                        @endif
                     </td>
                     <td class="px-3 py-3 text-[13px] font-medium text-gray-900 whitespace-nowrap truncate max-w-[220px] pr-2">{{ $p->item }}</td>
                     <td class="px-3 py-3 text-[13px] text-gray-700">{{ (int)$p->qty }}</td>

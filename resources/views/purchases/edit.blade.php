@@ -1,5 +1,3 @@
-edit
-
 @extends('layouts.app')
 
 @section('header')
@@ -125,13 +123,19 @@ Edit Purchase
             <div class="border border-gray-200 rounded-xl p-4">
                 <div class="font-semibold mb-3">Upload Image</div>
                 @php $currentImage = $purchase->image ?? null; @endphp
-                @if(!empty($currentImage))
-                    <div class="mb-3">
-                        <img src="{{ asset('images/purchases/'.$currentImage) }}" alt="Purchase Image" class="max-w-full rounded border">
-                    </div>
-                @else
-                    <div class="mb-3 text-sm text-gray-500">No image uploaded.</div>
-                @endif
+                <div class="mb-3">
+                    @if(!empty($currentImage))
+                        <div class="relative inline-block">
+                            <img src="{{ asset('images/purchases/'.$currentImage) }}" alt="Purchase Image" class="max-w-full rounded border">
+                            <label class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs cursor-pointer">
+                                ×
+                                <input type="checkbox" name="remove_image" value="1" class="hidden" checked onchange="this.checked ? this.parentElement.classList.remove('bg-gray-300') : this.parentElement.classList.add('bg-gray-300')">
+                            </label>
+                        </div>
+                    @else
+                        <div class="text-sm text-gray-500">No image uploaded.</div>
+                    @endif
+                </div>
                 <div class="border-2 border-dashed rounded-lg p-6 text-center text-sm text-gray-500">Drag & drop single image here or
                     <label class="inline-block ml-2 px-3 py-1 rounded bg-violet-600 text-white cursor-pointer">
                         Select Image

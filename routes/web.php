@@ -1,8 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProductController;
@@ -12,15 +10,14 @@ use App\Http\Controllers\AdjustmentController;
 use App\Http\Controllers\TransferController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\UnitController;
 use App\Http\Controllers\BrandController;
+use App\Http\Controllers\TagController;
+use App\Http\Controllers\UnitController;
 use App\Http\Controllers\LabelController;
 use App\Http\Controllers\StockCountController;
-use App\Http\Controllers\ProfileController;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Cache;
 
 // kalau akses root, redirect ke dashboard
-
 Route::get('/', function () {
     return redirect()->route('dashboard');
 });
@@ -32,213 +29,109 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // language switcher
 Route::get('/lang/{locale}', function ($locale) {
-    session(['app_locale' => in_array($locale, ['en', 'id']) ? $locale : 'en']);
+    session(['app_locale' => in_array($locale, ['en','id']) ? $locale : 'en']);
     return back();
 })->name('lang.switch');
-
-// Test route for debugging (no auth required)
-Route::get('/test-search', function (Request $request) {
-    try {
-        $searchTerm = $request->get('q', '');
-        
-        if ($searchTerm === 'test') {
-            return response()->json([
-                ['id' => 1, 'name' => 'Test Product', 'code' => 'TEST001', 'price' => 100, 'stock' => 50, 'category_name' => 'Test', 'brand_name' => 'Test Brand', 'unit_name' => 'pcs']
-            ]);
-        }
-        
-        $products = DB::table('products')
-            ->select('id', 'name', 'code', 'price', 'stock')
-            ->where(function($query) use ($searchTerm) {
-                $query->where('name', 'like', '%' . $searchTerm . '%')
-                      ->orWhere('code', 'like', '%' . $searchTerm . '%');
-            })
-            ->limit(5)
-            ->get();
-            
-        // Add default values
-        $products = $products->map(function ($product) {
-            return [
-                'id' => $product->id,
-                'name' => $product->name ?? 'Unknown',
-                'code' => $product->code ?? 'N/A',
-                'price' => $product->price ?? 0,
-                'stock' => $product->stock ?? 0,
-                'category_name' => 'General',
-                'brand_name' => 'No Brand',
-                'unit_name' => 'pcs'
-            ];
-        });
-            
-        return response()->json($products);
-    } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage()], 500);
-    }
-});
-
-// Redirect old product routes to new app routes
-Route::get('/products', function () {
-    return redirect()->route('products.index');
-})->middleware('auth');
-
-Route::get('/products/{id}', function ($id) {
-    return redirect()->route('products.show', $id);
-})->middleware('auth');
-
-Route::get('/products/{id}/edit', function ($id) {
-    return redirect()->route('products.edit', $id);
-})->middleware('auth');
 
 // semua route di bawah butuh login
 Route::middleware('auth')->prefix('app')->group(function () {
     // dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // pos
-    Route::get('/pos', function () {
-        return view('pos.index');
-    })->name('pos.index');
+    // products
 
-    // profile
-    Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'index'])->name('profile.index');
+    // Products
+Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+Route::get('/products/labels', [LabelController::class, 'index'])->name('products.labels');
+// Stock Count routes under /app/products/stock-count*
+Route::prefix('products')->group(function () {
+    Route::resource('stock-count', StockCountController::class);
+});
 
-    // settings
-    Route::get('/settings', function () {
-        return view('settings.index');
-    })->name('settings.index');
+Route::post('/tags/ajax-create', [TagController::class, 'storeAjax'])->name('tags.ajax-create');
 
-    // products - specific routes first before resource
-    Route::get('/products/labels', function () {
-        try {
-            $products = collect([]); // Start with empty collection
-            
-            // Get warehouses
-            $warehouses = DB::table('warehouses')->get();
+Route::post('/products/{id}/approve', [ProductController::class, 'approve'])->name('products.approve');
+Route::post('/products/{id}/reject', [ProductController::class, 'reject'])->name('products.reject');
+Route::post('/products/approve-pending', [ProductController::class, 'approvePending'])->name('products.approve-pending');
+Route::post('/products/reject-pending', [ProductController::class, 'rejectPending'])->name('products.reject-pending');
 
-            return view('products.labels-simple', compact('products', 'warehouses'));
-        } catch (\Exception $e) {
-            $products = collect([]);
-            $warehouses = collect([]);
-            return view('products.labels-simple', compact('products', 'warehouses'));
-        }
-    })->name('products.labels');
-    
-    // Search products for labels
-    Route::get('/products/labels/search', function (Request $request) {
-        try {
-            $searchTerm = $request->get('q', '');
-            
-            // Remove dummy data - use real data only
-            
-            if (strlen($searchTerm) < 2) {
-                return response()->json([]);
-            }
-            
-            // Search products with proper error handling
-            $products = DB::table('products')
-                ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
-                ->leftJoin('brands', 'products.brand_id', '=', 'brands.id')
-                ->leftJoin('units', 'products.unit_id', '=', 'units.id')
-                ->select('products.id', 'products.name', 'products.code', 'products.price', 'products.stock_alert as stock', 'categories.name as category_name', 'brands.name as brand_name', 'units.name as unit_name')
-                ->where(function($query) use ($searchTerm) {
-                    $query->where('products.name', 'like', '%' . $searchTerm . '%')
-                          ->orWhere('products.code', 'like', '%' . $searchTerm . '%');
-                })
-                ->orderBy('products.name')
-                ->limit(20)
-                ->get();
 
-            // Add default values for missing fields
-            $products = $products->map(function ($product) {
-                return [
-                    'id' => $product->id,
-                    'name' => $product->name ?? 'Unknown Product',
-                    'code' => $product->code ?? 'N/A',
-                    'sku' => $product->code ?? 'N/A',
-                    'price' => $product->price ?? 0,
-                    'stock' => $product->stock ?? 0,
-                    'category_name' => 'General',
-                    'brand_name' => 'No Brand',
-                    'unit_name' => 'pcs'
-                ];
-            });
-
-            return response()->json($products);
-        } catch (\Exception $e) {
-            \Log::error('Labels search error: ' . $e->getMessage());
-            return response()->json(['error' => 'Search failed: ' . $e->getMessage()], 500);
-        }
-    })->name('products.labels.search');
-
-    Route::get('/products/stock-count', [App\Http\Controllers\StockCountController::class, 'index'])->name('stock-count.index');
-
-    // Stock count routes
-    Route::post('/products/stock-count', [App\Http\Controllers\StockCountController::class, 'store'])->name('stock-count.store');
-    Route::get('/products/stock-count/{id}', [App\Http\Controllers\StockCountController::class, 'show'])->name('stock-count.show');
-    Route::get('/products/stock-count/{id}/edit', [App\Http\Controllers\StockCountController::class, 'edit'])->name('stock-count.edit');
-    Route::put('/products/stock-count/{id}', [App\Http\Controllers\StockCountController::class, 'update'])->name('stock-count.update');
-    Route::delete('/products/stock-count/{id}', [App\Http\Controllers\StockCountController::class, 'destroy'])->name('stock-count.destroy');
-
+    Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
+    Route::post('/products', [ProductController::class, 'store'])->name('products.store');
+    // Search API for products (AJAX) - MUST come before {id} routes
+    Route::get('/products/search', [ProductController::class, 'search'])->name('products.search');
     Route::get('/products/export/pdf', [ProductController::class, 'exportPdf'])->name('products.export.pdf');
     Route::get('/products/export/excel', [ProductController::class, 'exportExcel'])->name('products.export.excel');
-    Route::get('/products/search', [ProductController::class, 'search'])->name('products.search');
-    Route::post('/products/approve', [ProductController::class, 'approve'])->name('products.approve');
-    Route::post('/products/{id}/approve', [ProductController::class, 'approve'])->name('products.approve');
-    Route::post('/products/{id}/reject', [ProductController::class, 'reject'])->name('products.reject');
-    Route::post('/products/approve-pending', [ProductController::class, 'approvePending'])->name('products.approve-pending');
-    Route::post('/products/reject-pending', [ProductController::class, 'rejectPending'])->name('products.reject-pending');
     Route::post('/products/import', [ProductController::class, 'import'])->name('products.import');
-    Route::get('/products/{product}/barcode', [ProductController::class, 'barcode'])->name('products.barcode');
-    Route::post('/products/generate-code', [ProductController::class, 'generateCode'])->name('products.generate-code');
+    
+    // Dynamic product routes LAST - after all specific routes
+    Route::get('/products/{id}', [ProductController::class, 'show'])->name('products.show');
+    Route::get('/products/{id}/edit', [ProductController::class, 'edit'])->name('products.edit');
+    Route::put('/products/{id}', [ProductController::class, 'update'])->name('products.update');
+    Route::delete('/products/{id}', [ProductController::class, 'destroy'])->name('products.destroy');
 
-    // products resource route (must be last)
-    Route::resource('products', ProductController::class);
+    // categories
+    Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
+    Route::get('/categories/create', [CategoryController::class, 'create'])->name('categories.create');
+    Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
+    Route::get('/categories/{category}', [CategoryController::class, 'show'])->name('categories.show');
+    Route::get('/categories/{category}/edit', [CategoryController::class, 'edit'])->name('categories.edit');
+    Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
+    Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+
     // brands
-    Route::resource('brands', BrandController::class);
+    Route::get('/brands', [BrandController::class, 'index'])->name('brands.index');
+    Route::get('/brands/create', [BrandController::class, 'create'])->name('brands.create');
+    Route::post('/brands', [BrandController::class, 'store'])->name('brands.store');
+    Route::get('/brands/{brand}', [BrandController::class, 'show'])->name('brands.show');
+    Route::get('/brands/{brand}/edit', [BrandController::class, 'edit'])->name('brands.edit');
+    Route::put('/brands/{brand}', [BrandController::class, 'update'])->name('brands.update');
+    Route::delete('/brands/{brand}', [BrandController::class, 'destroy'])->name('brands.destroy');
+
+    // units
+    Route::get('/units', [UnitController::class, 'index'])->name('units.index');
+    Route::get('/units/create', [UnitController::class, 'create'])->name('units.create');
+    Route::post('/units', [UnitController::class, 'store'])->name('units.store');
+    Route::get('/units/{unit}', [UnitController::class, 'show'])->name('units.show');
+    Route::get('/units/{unit}/edit', [UnitController::class, 'edit'])->name('units.edit');
+    Route::put('/units/{unit}', [UnitController::class, 'update'])->name('units.update');
+    Route::delete('/units/{unit}', [UnitController::class, 'destroy'])->name('units.destroy');
 
     // warehouses
     Route::resource('warehouses', WarehouseController::class);
     Route::get('/warehouses/{warehouse}/stock', [WarehouseController::class, 'stock'])->name('warehouses.stock');
 
     // purchases
-    // purchases
     Route::resource('purchases', PurchaseController::class);
 
     Route::get('/purchases/{purchase}/invoice', [PurchaseController::class, 'invoice'])->name('purchases.invoice');
     Route::get('/purchases/{purchase}/print', [PurchaseController::class, 'print'])->name('purchases.print');
 
-    Route::get('/reports/purchases', [ReportController::class, 'purchases'])->name('reports.purchases');
+    // adjustments - custom endpoints FIRST to avoid clashing with resource {id}
+    Route::get('/adjustments/product-search', [AdjustmentController::class, 'productSearch'])->name('adjustments.productSearch');
+    Route::get('/adjustments/product-stock', [AdjustmentController::class, 'productStock'])->name('adjustments.productStock');
+    Route::resource('adjustments', AdjustmentController::class);
 
-    Route::get('/reports/export/purchases', [ReportController::class, 'exportPurchases'])->name('reports.exportPurchases');
+    // transfers - custom search BEFORE resource
+    Route::get('/transfers/product-search', [TransferController::class, 'productSearch'])->name('transfers.productSearch');
 
-    // categories
-    Route::resource('categories', CategoryController::class);
-    // units
-    Route::resource('units', UnitController::class);
+    Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'index'])->name('profile.index');
+    
+    // Language switching
+    Route::get('/language/{locale}', [App\Http\Controllers\LanguageController::class, 'switchLanguage'])->name('language.switch');
 
-    // tags (simple AJAX route for creating tags)
-    Route::post('/tags/ajax-create', function (\Illuminate\Http\Request $request) {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'color' => 'nullable|string|max:7'
-        ]);
+    // settings
+    Route::get('/settings', function () {
+        return view('settings.index');
+    })->name('settings.index');
 
-        $tagId = DB::table('tags')->insertGetId([
-            'name' => $request->name,
-            'color' => $request->color ?? '#3B82F6',
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);
 
-        return response()->json([
-            'success' => true,
-            'tag' => [
-                'id' => $tagId,
-                'name' => $request->name,
-                'color' => $request->color ?? '#3B82F6'
-            ]
-        ]);
-    })->name('tags.ajax-create');
+    // transfers
+    Route::resource('transfers', TransferController::class);
+    Route::get('/transfers/search/product', [TransferController::class, 'searchProduct']);
+    Route::get('/transfers/{transfer}/print', [TransferController::class, 'print'])->name('transfers.print');
+    Route::get('/transfers/{transfer}/invoice', [TransferController::class, 'invoice'])->name('transfers.invoice');
+
 
     // reports
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
@@ -249,17 +142,4 @@ Route::middleware('auth')->prefix('app')->group(function () {
     Route::get('/reports/export/purchases', [ReportController::class, 'exportPurchases'])->name('reports.exportPurchases');
     Route::get('/reports/export/stock', [ReportController::class, 'exportStock'])->name('reports.exportStock');
 
-    // adjustments
-    // NOTE: define specific routes BEFORE resource to avoid conflicts like 'product-search' matching {adjustment}
-    Route::get('/adjustments/product-search', [AdjustmentController::class, 'productSearch'])->name('adjustments.productSearch');
-    Route::get('/adjustments/product-stock', [AdjustmentController::class, 'productStock'])->name('adjustments.productStock');
-    Route::resource('adjustments', AdjustmentController::class);
-
-    Route::get('/transfers/product-search', [TransferController::class, 'productSearch'])->name('transfers.productSearch');
-
-    // transfers
-       Route::resource('transfers', TransferController::class);
-       Route::get('/transfers/search/product', [TransferController::class, 'searchProduct']);
-       Route::get('/transfers/{transfer}/print', [TransferController::class, 'print'])->name('transfers.print');
-       Route::get('/transfers/{transfer}/invoice', [TransferController::class, 'invoice'])->name('transfers.invoice');
 });

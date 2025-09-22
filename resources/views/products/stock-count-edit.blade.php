@@ -193,3 +193,12 @@ document.querySelectorAll('input[name="status"]').forEach(radio => {
 </script>
 @endpush
 @endsection
+
+
+
+
+
+
+
+
+

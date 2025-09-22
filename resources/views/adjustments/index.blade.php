@@ -5,17 +5,27 @@ All Adjustments
 @endsection
 
 @section('content')
-<div class="bg-white border border-gray-200 rounded-lg p-6">
-    <div class="flex items-center justify-between mb-4">
+<x-ui.card>
+    <div class="flex items-center justify-between mb-6">
         <div class="flex items-baseline gap-3">
-            <div class="text-2xl font-semibold">All Adjustments</div>
-            <div class="text-sm text-slate-500">Adjustment | All Adjustments</div>
+            <h1 class="text-2xl font-semibold text-gray-900">All Adjustments</h1>
+            <div class="text-sm text-gray-500">Adjustment | All Adjustments</div>
         </div>
-        <div class="flex items-center gap-2">
-            <button type="button" onclick="document.getElementById('filterPanel').classList.remove('hidden')" class="px-3 py-2 border border-gray-300 rounded text-sm">Filter</button>
-            <a href="{{ request()->fullUrlWithQuery(['export'=>'pdf']) }}" class="px-3 py-2 border border-emerald-200 text-emerald-600 rounded text-sm">PDF</a>
-            <a href="{{ request()->fullUrlWithQuery(['export'=>'csv']) }}" class="px-3 py-2 border border-rose-200 text-rose-600 rounded text-sm">EXCEL</a>
-            <a href="{{ route('adjustments.create') }}" class="px-4 py-2 bg-violet-600 text-white rounded-lg text-sm flex items-center gap-2">
+        
+        <div class="flex items-center space-x-3">
+            <button type="button" onclick="document.getElementById('filterPanel').classList.remove('hidden')" class="px-3 py-2 border border-gray-300 rounded text-sm hover:bg-gray-50 transition-colors duration-200">
+                Filter
+            </button>
+            
+            <a href="{{ request()->fullUrlWithQuery(['export'=>'pdf']) }}" class="px-3 py-2 border border-emerald-200 text-emerald-600 rounded text-sm hover:bg-emerald-50 transition-colors duration-200">
+                PDF
+            </a>
+            
+            <a href="{{ request()->fullUrlWithQuery(['export'=>'csv']) }}" class="px-3 py-2 border border-rose-200 text-rose-600 rounded text-sm hover:bg-rose-50 transition-colors duration-200">
+                EXCEL
+            </a>
+            
+            <a href="{{ route('adjustments.create') }}" class="px-4 py-2 bg-violet-600 text-white rounded-lg text-sm flex items-center gap-2 hover:bg-violet-700 transition-colors duration-200">
                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14"/></svg>
                 Create
             </a>
@@ -72,36 +82,36 @@ All Adjustments
         </table>
     </div>
     <div class="mt-4">{!! $adjustments->links('pagination::simple-tailwind') !!}</div>
+</x-ui.card>
 
-    <div id="filterPanel" class="fixed inset-y-0 right-0 z-40 w-full max-w-sm bg-white border-l border-gray-200 shadow-xl hidden">
-        <div class="flex items-center justify-between p-4 border-b">
-            <div class="font-semibold">Filter</div>
-            <button type="button" onclick="document.getElementById('filterPanel').classList.add('hidden')" class="text-slate-500">✕</button>
-        </div>
-        <form method="GET" action="{{ route('adjustments.index') }}" class="p-4 space-y-4">
-            <div>
-                <label class="block text-sm text-slate-600 mb-1">Date</label>
-                <input type="date" name="date" value="{{ request('date') }}" class="w-full border rounded px-3 py-2">
-            </div>
-            <div>
-                <label class="block text-sm text-slate-600 mb-1">Reference</label>
-                <input type="text" name="ref" value="{{ request('ref') }}" class="w-full border rounded px-3 py-2" placeholder="Reference">
-            </div>
-            <div>
-                <label class="block text-sm text-slate-600 mb-1">Warehouse</label>
-                <select name="warehouse_id" class="w-full border rounded px-3 py-2">
-                    <option value="">Choose Warehouse</option>
-                    @foreach($warehouseOptions as $wid => $label)
-                    <option value="{{ $wid }}" @selected(request('warehouse_id')==$wid)>{{ $label }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="flex items-center gap-2">
-                <button class="px-3 py-2 bg-violet-600 text-white rounded">Filter</button>
-                <a href="{{ route('adjustments.index') }}" class="px-3 py-2 border rounded">Reset</a>
-            </div>
-        </form>
+<div id="filterPanel" class="fixed inset-y-0 right-0 z-40 w-full max-w-sm bg-white border-l border-gray-200 shadow-xl hidden">
+    <div class="flex items-center justify-between p-4 border-b">
+        <div class="font-semibold">Filter</div>
+        <button type="button" onclick="document.getElementById('filterPanel').classList.add('hidden')" class="text-slate-500">✕</button>
     </div>
+    <form method="GET" action="{{ route('adjustments.index') }}" class="p-4 space-y-4">
+        <div>
+            <label class="block text-sm text-slate-600 mb-1">Date</label>
+            <input type="date" name="date" value="{{ request('date') }}" class="w-full border rounded px-3 py-2">
+        </div>
+        <div>
+            <label class="block text-sm text-slate-600 mb-1">Reference</label>
+            <input type="text" name="ref" value="{{ request('ref') }}" class="w-full border rounded px-3 py-2" placeholder="Reference">
+        </div>
+        <div>
+            <label class="block text-sm text-slate-600 mb-1">Warehouse</label>
+            <select name="warehouse_id" class="w-full border rounded px-3 py-2">
+                <option value="">Choose Warehouse</option>
+                @foreach($warehouseOptions as $wid => $label)
+                <option value="{{ $wid }}" @selected(request('warehouse_id')==$wid)>{{ $label }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="flex items-center gap-2">
+            <button class="px-3 py-2 bg-violet-600 text-white rounded">Filter</button>
+            <a href="{{ route('adjustments.index') }}" class="px-3 py-2 border rounded">Reset</a>
+        </div>
+    </form>
 </div>
 @if(!empty($detailHeader))
   <!-- Inline Detail Modal -->
