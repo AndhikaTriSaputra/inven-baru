@@ -1,76 +1,46 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen bg-gray-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="bg-white border border-gray-200 rounded-lg p-6">
+<div class="container">
     <!-- Success Message -->
     @if (session('success'))
-    <div class="mb-6 rounded-2xl border border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 text-green-800 px-6 py-4 shadow-sm">
-        <div class="flex items-center space-x-3">
-            <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                </svg>
-            </div>
-            <div>
-                <p class="font-semibold">Success!</p>
-                <p class="text-sm">{{ session('success') }}</p>
-            </div>
-        </div>
-    </div>
+        <x-alert type="success" dismissible class="mb-6">
+            {{ session('success') }}
+        </x-alert>
     @endif
 
     <!-- Error Message -->
     @if (session('error'))
-    <div class="mb-6 rounded-2xl border border-red-200 bg-gradient-to-r from-red-50 to-pink-50 text-red-700 px-6 py-4 shadow-sm">
-        <div class="flex items-center space-x-3">
-            <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-            </div>
-            <div>
-                <p class="font-semibold">Error!</p>
-                <p class="text-sm">{{ session('error') }}</p>
-            </div>
-        </div>
-    </div>
+        <x-alert type="error" dismissible class="mb-6">
+            {{ session('error') }}
+        </x-alert>
     @endif
 
     <!-- Header Section -->
-    <div class="flex items-center justify-between mb-6">
-        <!-- Title and Breadcrumb -->
-        <div class="flex items-baseline gap-3">
-            <div class="text-2xl font-semibold">Stock Count</div>
-            <div class="text-sm text-slate-500">Products | Stock Count</div>
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-heading-2">Stock Count</h1>
+            <p class="text-body-sm mt-1">Manage inventory stock counting operations</p>
         </div>
         
         <!-- Search Bar -->
         <div class="relative">
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
+            <div class="input-search-icon">
+                <x-icon name="search" size="sm" class="text-gray-400" />
             </div>
-            <input id="tableSearch" type="text" placeholder="Search this table" class="w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-violet-500 focus:border-transparent">
+            <input id="tableSearch" type="text" placeholder="Search stock counts..." class="form-input input-search w-64">
         </div>
-        
-        <!-- Action Buttons -->
-        <div class="flex items-center space-x-4">
-            <button type="button" onclick="document.getElementById('filterPanel').classList.remove('hidden')" class="flex items-center px-4 py-2 border border-blue-200 text-blue-600 bg-white rounded-md hover:bg-blue-50 transition-colors duration-200">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
-                </svg>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+            <x-button onclick="document.getElementById('filterPanel').classList.remove('hidden')" variant="secondary" icon="filter">
                 Filter
-            </button>
-            
-            <button onclick="startCount()" class="flex items-center px-4 py-2 bg-violet-600 text-white rounded-md hover:bg-violet-700 transition-colors duration-200">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                </svg>
-                New Count
-            </button>
+            </x-button>
+            <x-button onclick="openCountModal()" variant="primary" icon="plus">
+                New Stock Count
+            </x-button>
         </div>
     </div>
 
@@ -194,9 +164,13 @@
             <label class="block text-sm text-slate-600 mb-1">Warehouse</label>
             <select name="warehouse_id" class="w-full border rounded px-3 py-2">
                 <option value="">Choose Warehouse</option>
-                @foreach($warehouses ?? [] as $warehouse)
-                    <option value="{{ $warehouse->id }}" @selected(request('warehouse_id')==$warehouse->id)>{{ $warehouse->name }}</option>
-                @endforeach
+                @if(isset($warehouses) && count($warehouses))
+                    @foreach($warehouses as $warehouse)
+                        <option value="{{ $warehouse->id }}" @selected(request('warehouse_id')==$warehouse->id)>{{ $warehouse->name }}</option>
+                    @endforeach
+                @else
+                    <option value="" disabled>No warehouses available</option>
+                @endif
             </select>
         </div>
         <div>
@@ -259,9 +233,13 @@
                     <div class="relative">
                         <select name="warehouse_id" id="countWarehouse" class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-sm appearance-none bg-white" required>
                             <option value="">Select Warehouse</option>
-                            @foreach($warehouses ?? [] as $warehouse)
-                                <option value="{{ $warehouse->id }}">{{ $warehouse->name }}</option>
-                            @endforeach
+                            @if(isset($warehouses) && count($warehouses))
+                                @foreach($warehouses as $warehouse)
+                                    <option value="{{ $warehouse->id }}">{{ $warehouse->name }}</option>
+                                @endforeach
+                            @else
+                                <option value="" disabled>No warehouses available</option>
+                            @endif
                         </select>
                         <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

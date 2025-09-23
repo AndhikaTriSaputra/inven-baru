@@ -5,7 +5,7 @@ All Adjustments
 @endsection
 
 @section('content')
-<x-ui.card>
+<x-card>
     <div class="flex items-center justify-between mb-6">
         <div class="flex items-baseline gap-3">
             <h1 class="text-2xl font-semibold text-gray-900">All Adjustments</h1>
@@ -82,7 +82,7 @@ All Adjustments
         </table>
     </div>
     <div class="mt-4">{!! $adjustments->links('pagination::simple-tailwind') !!}</div>
-</x-ui.card>
+</x-card>
 
 <div id="filterPanel" class="fixed inset-y-0 right-0 z-40 w-full max-w-sm bg-white border-l border-gray-200 shadow-xl hidden">
     <div class="flex items-center justify-between p-4 border-b">

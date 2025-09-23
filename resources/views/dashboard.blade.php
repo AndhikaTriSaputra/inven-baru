@@ -1,12 +1,10 @@
-dashboard.blade.php
-
 @extends('layouts.app')
 @section('content')
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-  <x-ui.card class="p-6 flex items-center gap-4">
-    <div class="w-16 h-16 rounded-2xl bg-violet-50 grid place-items-center">
-      <svg class="w-9 h-9 text-violet-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+  <x-card class="p-6 flex items-center gap-4">
+    <div class="w-16 h-16 rounded-2xl bg-violet-50 grid place-items-center p-2 ring-1 ring-violet-100">
+      <svg class="w-8 h-8 text-violet-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
         <path d="M3 7h18M5 7v10a2 2 0 002 2h10a2 2 0 002-2V7"/>
       </svg>
     </div>
@@ -14,11 +12,11 @@ dashboard.blade.php
       <div class="muted text-sm">Product</div>
       <div class="text-4xl font-semibold" style="color:var(--violet)">{{ number_format($stats['products']) }}</div>
     </div>
-  </x-ui.card>
+  </x-card>
 
-  <x-ui.card class="p-6 flex items-center gap-4">
-    <div class="w-16 h-16 rounded-2xl bg-violet-50 grid place-items-center">
-      <svg class="w-9 h-9 text-violet-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+  <x-card class="p-6 flex items-center gap-4">
+    <div class="w-16 h-16 rounded-2xl bg-violet-50 grid place-items-center p-2 ring-1 ring-violet-100">
+      <svg class="w-8 h-8 text-violet-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
         <path d="M3 5h2l1 12a2 2 0 002 2h8a2 2 0 002-2l1-9H6"/>
       </svg>
     </div>
@@ -26,11 +24,11 @@ dashboard.blade.php
       <div class="muted text-sm">Purchases</div>
       <div class="text-4xl font-semibold" style="color:var(--violet)">{{ number_format($stats['purchases']) }}</div>
     </div>
-  </x-ui.card>
+  </x-card>
 
-  <x-ui.card class="p-6 flex items-center gap-4">
-    <div class="w-16 h-16 rounded-2xl bg-violet-50 grid place-items-center">
-      <svg class="w-9 h-9 text-violet-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+  <x-card class="p-6 flex items-center gap-4">
+    <div class="w-16 h-16 rounded-2xl bg-violet-50 grid place-items-center p-2 ring-1 ring-violet-100">
+      <svg class="w-8 h-8 text-violet-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
         <path d="M3 12l9-7 9 7-2 1v7H5v-7z"/>
       </svg>
     </div>
@@ -38,23 +36,23 @@ dashboard.blade.php
       <div class="muted text-sm">Warehouse</div>
       <div class="text-4xl font-semibold" style="color:var(--violet)">{{ number_format($stats['warehouses']) }}</div>
     </div>
-  </x-ui.card>
+  </x-card>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-5">
-  <x-ui.card class="pt-6 pb-6 px-6 lg:col-span-2">
+  <x-card class="pt-6 pb-6 px-6 lg:col-span-2">
     <div class="mb-3 font-medium">This Week</div>
     <div class="chart-wrapper">
       <div class="chart-container">
         <canvas id="purchasesChart"></canvas>
       </div>
     </div>
-  </x-ui.card>
+  </x-card>
 
   <x-ui.card class="p-6 overflow-auto">
     <div class="mb-3 font-medium">Recent Purchase</div>
     {{-- tabel recent purchases (punyamu) --}}
-  </x-ui.card>
+  </x-card>
 </div>
 
 <x-ui.card class="p-6 mt-5">

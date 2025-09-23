@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<x-ui.card>
+<x-card>
     <div class="flex items-center justify-between mb-6">
         <div class="flex items-baseline gap-3">
             <h1 class="text-2xl font-semibold text-gray-900">Units</h1>
@@ -115,7 +115,7 @@
             </div>
         </div>
     </div>
-</x-ui.card>
+</x-card>
 @endsection
 
 @push('scripts')

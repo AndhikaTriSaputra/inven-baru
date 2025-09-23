@@ -57,10 +57,10 @@
     <div class="flex items-center justify-between flex-wrap gap-2">
         <!-- Left: Search -->
         <div class="relative w-full sm:w-auto">
-            <input id="searchInput" type="text" placeholder="Search this table" class="w-[320px] max-w-full h-10 rounded-xl border border-gray-200 pl-10 pr-3 text-[13px] bg-white/80 backdrop-blur focus:border-violet-400 focus:ring-2 focus:ring-violet-100 shadow-sm" />
-            <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+            <div class="input-search-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
             </div>
+            <input id="searchInput" type="text" placeholder="Search this table" class="form-input input-search w-[320px] max-w-full h-10 rounded-xl border border-gray-200 pr-3 text-[13px] bg-white/80 backdrop-blur focus:border-violet-400 focus:ring-2 focus:ring-violet-100 shadow-sm" />
         </div>
         <!-- Right: Buttons -->
         <div class="flex items-center gap-2">
@@ -634,37 +634,28 @@ document.addEventListener('DOMContentLoaded', function() {
     // Apply filters to table function
     function applyFiltersToTable(filters) {
         const rows = document.querySelectorAll('#productsTable tr');
-        
+
         rows.forEach(row => {
-            const cells = row.querySelectorAll('td');
-            if (cells.length === 0) return; // Skip header row
-            
+            const name = (row.dataset.name || '').toLowerCase();
+            const code = (row.dataset.code || '').toLowerCase();
+            const brand = (row.dataset.brand || '').toLowerCase();
+            const category = (row.dataset.category || '').toLowerCase();
+
             let showRow = true;
-            
-            // Filter by code
-            if (filters.code && !cells[1].textContent.toLowerCase().includes(filters.code.toLowerCase())) {
-                showRow = false;
+
+            if (filters.code && !code.includes(filters.code.toLowerCase())) showRow = false;
+            if (filters.product && !name.includes(filters.product.toLowerCase())) showRow = false;
+            if (filters.category && !category.includes(filters.category.toLowerCase())) showRow = false;
+            if (filters.brand && !brand.includes(filters.brand.toLowerCase())) showRow = false;
+
+            // Tags (if any specified, require overlap)
+            if (showRow && Array.isArray(filters.tags) && filters.tags.length) {
+                // current table shows placeholder Tag only; skip matching or customize as needed
             }
-            
-            // Filter by product name
-            if (filters.product && !cells[1].textContent.toLowerCase().includes(filters.product.toLowerCase())) {
-                showRow = false;
-            }
-            
-            // Filter by category
-            if (filters.category && !cells[2].textContent.toLowerCase().includes(filters.category.toLowerCase())) {
-                showRow = false;
-            }
-            
-            // Filter by brand
-            if (filters.brand && !cells[3].textContent.toLowerCase().includes(filters.brand.toLowerCase())) {
-                showRow = false;
-            }
-            
-            // Show/hide row
+
             row.style.display = showRow ? '' : 'none';
         });
-        
+
         // Update filter button appearance
         const hasActiveFilters = Object.values(filters).some(value => 
             Array.isArray(value) ? value.length > 0 : value !== ''
@@ -879,6 +870,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
     
+    function getFirstImagePath(product){
+        const img = product.image;
+        if (!img) return '';
+        if (Array.isArray(img)) return img.length ? img[0] : '';
+        if (typeof img === 'string'){
+            const parts = img.split(',').map(s => (s||'').trim()).filter(Boolean);
+            return parts.length ? parts[0] : '';
+        }
+        return '';
+    }
+
     const render = (products) => {
         filteredProducts = products;
         currentPage = 1; // Reset to first page when filtering
@@ -904,10 +906,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const id = escape(p.id || '');
             const type = escape((p.type || 'Product').charAt(0).toUpperCase() + (p.type || 'Product').slice(1));
             const project = escape(p.project || '-');
+            const imgFile = getFirstImagePath(p);
+            const imgHtml = imgFile 
+                ? `<img src="/images/products/${escape(imgFile)}" class="w-10 h-10 object-cover rounded-xl border" />`
+                : `<div class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center text-[10px] text-gray-400 border">No image</div>`;
             return `
                 <tr class="hover:bg-gray-50 transition-colors" data-name="${name.toLowerCase()}" data-code="${code.toLowerCase()}" data-brand="${brand.toLowerCase()}" data-category="${category.toLowerCase()}">
                     <td class="px-3 py-2"><input type="checkbox" class="selectRow" value="${id}"></td>
-                    <td class="px-3 py-2"><div class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center text-[10px] text-gray-400 border">image</div></td>
+                    <td class="px-3 py-2">${imgHtml}</td>
                     <td class="px-3 py-2 text-[12px] text-gray-700">${type}</td>
                     <td class="px-3 py-2 text-[13px] font-medium text-gray-900 whitespace-nowrap truncate max-w-[220px] pr-2">${name || '-'}</td>
                     <td class="px-3 py-2"><span class="inline-block text-[11px] px-2 py-1 rounded-xl bg-violet-50 text-violet-700 border border-violet-200 whitespace-nowrap">Tag</span></td>
@@ -998,10 +1004,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 const id = escape(p.id || '');
                 const type = escape((p.type || 'Product').charAt(0).toUpperCase() + (p.type || 'Product').slice(1));
                 const project = escape(p.project || '-');
+                const imgFile = getFirstImagePath(p);
+                const imgHtml = imgFile 
+                    ? `<img src="/images/products/${escape(imgFile)}" class="w-10 h-10 object-cover rounded-xl border" />`
+                    : `<div class=\"w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center text-[10px] text-gray-400 border\">No image</div>`;
                 return `
                     <tr class="hover:bg-gray-50 transition-colors" data-name="${name.toLowerCase()}" data-code="${code.toLowerCase()}" data-brand="${brand.toLowerCase()}" data-category="${category.toLowerCase()}">
                         <td class="px-3 py-2"><input type="checkbox" class="selectRow" value="${id}"></td>
-                        <td class="px-3 py-2"><div class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center text-[10px] text-gray-400 border">image</div></td>
+                        <td class="px-3 py-2">${imgHtml}</td>
                         <td class="px-3 py-2 text-[12px] text-gray-700">${type}</td>
                         <td class="px-3 py-2 text-[13px] font-medium text-gray-900 whitespace-nowrap truncate max-w-[220px] pr-2">${name || '-'}</td>
                         <td class="px-3 py-2"><span class="inline-block text-[11px] px-2 py-1 rounded-xl bg-violet-50 text-violet-700 border border-violet-200 whitespace-nowrap">Tag</span></td>
@@ -1055,10 +1065,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 const id = escape(p.id || '');
                 const type = escape((p.type || 'Product').charAt(0).toUpperCase() + (p.type || 'Product').slice(1));
                 const project = escape(p.project || '-');
+                const imgFile = getFirstImagePath(p);
+                const imgHtml = imgFile 
+                    ? `<img src="/images/products/${escape(imgFile)}" class="w-10 h-10 object-cover rounded-xl border" />`
+                    : `<div class=\"w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center text-[10px] text-gray-400 border\">No image</div>`;
                 return `
                     <tr class="hover:bg-gray-50 transition-colors" data-name="${name.toLowerCase()}" data-code="${code.toLowerCase()}" data-brand="${brand.toLowerCase()}" data-category="${category.toLowerCase()}">
                         <td class="px-3 py-2"><input type="checkbox" class="selectRow" value="${id}"></td>
-                        <td class="px-3 py-2"><div class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center text-[10px] text-gray-400 border">image</div></td>
+                        <td class="px-3 py-2">${imgHtml}</td>
                         <td class="px-3 py-2 text-[12px] text-gray-700">${type}</td>
                         <td class="px-3 py-2 text-[13px] font-medium text-gray-900 whitespace-nowrap truncate max-w-[220px] pr-2">${name || '-'}</td>
                         <td class="px-3 py-2"><span class="inline-block text-[11px] px-2 py-1 rounded-xl bg-violet-50 text-violet-700 border border-violet-200 whitespace-nowrap">Tag</span></td>

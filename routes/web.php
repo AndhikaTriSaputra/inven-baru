@@ -124,8 +124,6 @@ Route::post('/products/reject-pending', [ProductController::class, 'rejectPendin
     Route::get('/settings', function () {
         return view('settings.index');
     })->name('settings.index');
-
-
     // transfers
     Route::resource('transfers', TransferController::class);
     Route::get('/transfers/search/product', [TransferController::class, 'searchProduct']);
@@ -143,3 +141,4 @@ Route::post('/products/reject-pending', [ProductController::class, 'rejectPendin
     Route::get('/reports/export/stock', [ReportController::class, 'exportStock'])->name('reports.exportStock');
 
 });
+

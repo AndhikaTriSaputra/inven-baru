@@ -5,17 +5,17 @@ Warehouses
 @endsection
 
 @section('content')
-<x-ui.card>
+<x-card>
     <div class="flex items-center justify-between mb-6">
         <div class="flex items-baseline gap-3">
             <h1 class="text-2xl font-semibold text-gray-900">Warehouse</h1>
             <div class="text-sm text-gray-500">Settings | Warehouse</div>
         </div>
         
-        <button type="button" onclick="openCreateWarehouse()" class="px-4 py-2 bg-violet-600 text-white rounded-lg text-sm flex items-center gap-2 hover:bg-violet-700 transition-colors duration-200">
+        <a href="{{ route('warehouses.create') }}" class="px-4 py-2 bg-violet-600 text-white rounded-lg text-sm flex items-center gap-2 hover:bg-violet-700 transition-colors duration-200">
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14"/></svg>
             Create
-        </button>
+        </a>
     </div>
     <div class="flex items-center justify-between mb-3">
         <div class="relative w-64">
@@ -69,50 +69,8 @@ Warehouses
         </table>
     </div>
     <div class="mt-4">{!! $warehouses->links('pagination::simple-tailwind') !!}</div>
-</x-ui.card>
+</x-card>
 
-<!-- Create Modal -->
-<div id="whCreateBackdrop" class="fixed inset-0 bg-black/40 z-40 hidden"></div>
-<div id="whCreateModal" class="fixed inset-0 z-50 items-start justify-center pt-16 hidden" style="display: none;">
-    <div class="bg-white w-full max-w-3xl rounded-lg shadow-xl border border-gray-200">
-        <div class="flex items-center justify-between px-5 py-3 border-b">
-            <div class="font-semibold">Create</div>
-            <button type="button" onclick="closeCreateWarehouse()" class="text-slate-500 hover:text-slate-700">✕</button>
-        </div>
-        <form action="{{ route('warehouses.store') }}" method="POST" class="p-5">
-            @csrf
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm text-slate-600 mb-1">Name *</label>
-                    <input type="text" name="name" required class="w-full border rounded-lg px-3 py-2" placeholder="Enter Warehouse Name">
-                </div>
-                <div>
-                    <label class="block text-sm text-slate-600 mb-1">Country</label>
-                    <input type="text" name="country" class="w-full border rounded-lg px-3 py-2" placeholder="Enter Warehouse Country">
-                </div>
-                <div>
-                    <label class="block text-sm text-slate-600 mb-1">Phone</label>
-                    <input type="text" name="mobile" class="w-full border rounded-lg px-3 py-2" placeholder="Enter Warehouse Phone">
-                </div>
-                <div>
-                    <label class="block text-sm text-slate-600 mb-1">Email</label>
-                    <input type="email" name="email" class="w-full border rounded-lg px-3 py-2" placeholder="Enter Warehouse Email">
-                </div>
-                <div>
-                    <label class="block text-sm text-slate-600 mb-1">City</label>
-                    <input type="text" name="city" class="w-full border rounded-lg px-3 py-2" placeholder="Enter Warehouse City">
-                </div>
-                <div>
-                    <label class="block text-sm text-slate-600 mb-1">Zip Code</label>
-                    <input type="text" name="zip" class="w-full border rounded-lg px-3 py-2" placeholder="Enter Warehouse Zip Code">
-                </div>
-            </div>
-            <div class="mt-5">
-                <button class="px-4 py-2 bg-violet-600 text-white rounded">Submit</button>
-            </div>
-        </form>
-    </div>
-</div>
 
 <script>
     // search filter
@@ -129,14 +87,6 @@ Warehouses
         });
     })();
 
-    function openCreateWarehouse(){
-        document.getElementById('whCreateModal').classList.remove('hidden');
-        document.getElementById('whCreateBackdrop').classList.remove('hidden');
-    }
-    function closeCreateWarehouse(){
-        document.getElementById('whCreateModal').classList.add('hidden');
-        document.getElementById('whCreateBackdrop').classList.add('hidden');
-    }
 </script>
 @endsection
 

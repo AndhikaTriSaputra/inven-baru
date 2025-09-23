@@ -23,28 +23,34 @@ Purchase Detail
 
     <h2 class="text-center text-xl font-semibold mb-6">Purchase Detail : {{ $purchase->Ref }}</h2>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div>
-            <div class="text-sm font-semibold mb-2">Supplier Info</div>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-8">
+        <div class="space-y-2 min-w-0">
+            <div class="text-base font-semibold text-gray-900">Supplier Info</div>
             @php $supplier = DB::table('providers')->where('id',$purchase->provider_id)->first(); @endphp
-            <div class="text-sm text-gray-700">{{ $supplier->name ?? '-' }}</div>
-            <div class="text-xs text-gray-500">{{ $supplier->email ?? '' }}</div>
-            <div class="text-xs text-gray-500">{{ $supplier->phone ?? '' }}</div>
+            <div class="text-sm text-gray-700 flex flex-col gap-1">
+                <div class="flex items-baseline gap-2"><span class="text-gray-500 w-28 md:w-32 shrink-0">Name :</span><span class="text-gray-800 font-medium">{{ $supplier->name ?? '-' }}</span></div>
+                <div class="flex items-baseline gap-2"><span class="text-gray-500 w-28 md:w-32 shrink-0">Email :</span><span class="text-gray-800">{{ $supplier->email ?? '-' }}</span></div>
+                <div class="flex items-baseline gap-2"><span class="text-gray-500 w-28 md:w-32 shrink-0">Phone :</span><span class="text-gray-800">{{ $supplier->phone ?? '-' }}</span></div>
+            </div>
         </div>
-        <div>
-            <div class="text-sm font-semibold mb-2">Company Info</div>
-            <div class="text-sm text-gray-700">Stocky</div>
-            <div class="text-xs text-gray-500">admin@example.com</div>
-            <div class="text-xs text-gray-500">6315996770</div>
-            <div class="text-xs text-gray-500">3618 Abia Martin Drive</div>
+        <div class="space-y-2 min-w-0">
+            <div class="text-base font-semibold text-gray-900">Company Info</div>
+            <div class="text-sm text-gray-700 flex flex-col gap-1">
+                <div class="flex items-baseline gap-2"><span class="text-gray-500 w-28 md:w-32 shrink-0">Name :</span><span class="text-gray-800 font-medium">Stocky</span></div>
+                <div class="flex items-baseline gap-2"><span class="text-gray-500 w-28 md:w-32 shrink-0">Email :</span><span class="text-gray-800">admin@example.com</span></div>
+                <div class="flex items-baseline gap-2"><span class="text-gray-500 w-28 md:w-32 shrink-0">Phone :</span><span class="text-gray-800">6315996770</span></div>
+                <div class="flex items-baseline gap-2"><span class="text-gray-500 w-28 md:w-32 shrink-0">Address :</span><span class="text-gray-800">3618 Abia Martin Drive</span></div>
+            </div>
         </div>
-        <div>
-            <div class="text-sm font-semibold mb-2">Purchase Info</div>
-            <div class="text-xs text-gray-600">Item : <span class="font-medium">{{ $purchase->Ref }}</span></div>
-            <div class="text-xs text-gray-600">Status : <span class="inline-flex items-center px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">{{ ucfirst($purchase->statut ?? 'received') }}</span></div>
-            @php $warehouse = DB::table('warehouses')->where('id',$purchase->warehouse_id)->first(); @endphp
-            <div class="text-xs text-gray-600">Warehouse : <span class="font-medium">{{ $warehouse->name ?? '-' }}</span></div>
-            <div class="text-xs text-gray-600">Payment Status : <span class="inline-flex items-center px-2 py-0.5 rounded bg-yellow-100 text-yellow-700">{{ ucfirst($purchase->payment_statut ?? 'unpaid') }}</span></div>
+        <div class="space-y-2 min-w-0">
+            <div class="text-base font-semibold text-gray-900">Purchase Info</div>
+            <div class="text-sm text-gray-700 flex flex-col gap-1">
+                <div class="flex items-baseline gap-2"><span class="text-gray-500 w-28 md:w-32 shrink-0">Reference :</span><span class="text-gray-700 font-medium">{{ $purchase->Ref }}</span></div>
+                <div class="flex items-baseline gap-2"><span class="text-gray-500 w-28 md:w-32 shrink-0">Status :</span><span class="inline-flex items-center px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">{{ ucfirst($purchase->statut ?? 'received') }}</span></div>
+                @php $warehouse = DB::table('warehouses')->where('id',$purchase->warehouse_id)->first(); @endphp
+                <div class="flex items-baseline gap-2"><span class="text-gray-500 w-28 md:w-32 shrink-0">Warehouse :</span><span class="text-gray-700 font-medium">{{ $warehouse->name ?? '-' }}</span></div>
+                <div class="flex items-baseline gap-2"><span class="text-gray-500 w-28 md:w-32 shrink-0">Payment Status :</span><span class="inline-flex items-center px-2 py-0.5 rounded bg-yellow-100 text-yellow-700">{{ ucfirst($purchase->payment_statut ?? 'unpaid') }}</span></div>
+            </div>
         </div>
     </div>
 

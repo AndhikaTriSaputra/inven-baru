@@ -1,38 +1,41 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="p-6">
-    <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-bold text-gray-800">Print Labels</h2>
+<div class="container">
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-heading-2">Print Labels</h1>
+            <p class="text-body-sm mt-1">Select products to generate printable labels with barcodes</p>
+        </div>
         <div class="flex items-center gap-3">
-            <button id="printBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>Print Selected Labels
-            </button>
-            <button id="selectAllBtn" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+            <x-button id="printBtn" variant="primary" icon="print">
+                Print Selected Labels
+            </x-button>
+            <x-button id="selectAllBtn" variant="secondary">
                 Select All
-            </button>
-            <button id="clearSelBtn" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+            </x-button>
+            <x-button id="clearSelBtn" variant="secondary">
                 Clear Selection
-            </button>
+            </x-button>
         </div>
     </div>
 
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div class="p-4 border-b border-gray-200">
+    <x-card>
+        <x-slot name="header">
             <div class="flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-gray-800">Product Labels</h3>
-                <div class="flex items-center gap-4">
-                    <div class="flex items-center gap-2">
-                        <label class="text-sm text-gray-600">Label Size:</label>
-                        <select id="labelSize" class="px-3 py-1 border border-gray-300 rounded text-sm">
+                <h3 class="text-heading-4">Product Labels</h3>
+                <div class="flex items-center gap-6">
+                    <div class="flex items-center gap-3">
+                        <label class="form-label">Label Size:</label>
+                        <select id="labelSize" class="form-select" style="width: auto; min-width: 180px;">
                             <option value="small">Small (2x1 inch)</option>
                             <option value="medium" selected>Medium (3x2 inch)</option>
                             <option value="large">Large (4x3 inch)</option>
                         </select>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <label class="text-sm text-gray-600">Show:</label>
-                        <select id="showOptions" class="px-3 py-1 border border-gray-300 rounded text-sm">
+                    <div class="flex items-center gap-3">
+                        <label class="form-label">Show:</label>
+                        <select id="showOptions" class="form-select" style="width: auto; min-width: 160px;">
                             <option value="all">All Products</option>
                             <option value="low-stock">Low Stock Only</option>
                             <option value="out-of-stock">Out of Stock Only</option>
@@ -40,56 +43,57 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </x-slot>
 
-        <div class="p-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="labelsGrid">
-                @forelse($products as $product)
-                <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div class="flex items-start justify-between mb-3">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="labelsGrid">
+            @forelse($products as $product)
+            <div class="card hover:shadow-lg transition-all duration-200">
+                <div class="card-body">
+                    <div class="flex items-start justify-between mb-4">
                         <div class="flex items-center">
-                            <input type="checkbox" class="product-checkbox mr-3" value="{{ $product->id }}"
+                            <input type="checkbox" class="product-checkbox mr-3 w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" value="{{ $product->id }}"
                                    data-name="{{ $product->name }}"
                                    data-code="{{ $product->code }}"
                                    data-price="{{ $product->price ?? 0 }}"
                                    data-stock="{{ $product->stock ?? 0 }}"
                                    data-unit="{{ $product->unit_name ?? 'pcs' }}">
                             <div>
-                                <h4 class="font-semibold text-gray-800 text-sm">{{ $product->name }}</h4>
-                                <p class="text-xs text-gray-500">{{ $product->category_name ?? 'No Category' }}</p>
+                                <h4 class="text-body font-medium">{{ $product->name }}</h4>
+                                <p class="text-caption">{{ $product->category_name ?? 'No Category' }}</p>
                             </div>
                         </div>
-                        <span class="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600">
+                        <x-badge variant="gray" size="sm">
                             {{ $product->stock ?? 0 }} {{ $product->unit_name ?? 'pcs' }}
-                        </span>
+                        </x-badge>
                     </div>
 
                     <div class="space-y-2">
-                        <div class="text-xs">
+                        <div class="text-caption">
                             <span class="text-gray-500">SKU:</span>
-                            <span class="font-mono">{{ $product->code }}</span>
+                            <span class="text-mono font-medium">{{ $product->code }}</span>
                         </div>
-                        <div class="text-xs">
+                        <div class="text-caption">
                             <span class="text-gray-500">Price:</span>
-                            <span class="font-semibold">Rp {{ number_format($product->price ?? 0, 0, ',', '.') }}</span>
+                            <span class="font-semibold text-primary-600">Rp {{ number_format($product->price ?? 0, 0, ',', '.') }}</span>
                         </div>
                         @if($product->brand_name)
-                        <div class="text-xs">
+                        <div class="text-caption">
                             <span class="text-gray-500">Brand:</span>
                             <span>{{ $product->brand_name }}</span>
                         </div>
                         @endif
                     </div>
                 </div>
-                @empty
-                <div class="col-span-full text-center py-8 text-gray-500">
-                    <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
-                    <p>No products found</p>
-                </div>
-                @endforelse
             </div>
+            @empty
+            <div class="col-span-full text-center py-12">
+                <x-icon name="products" size="xl" class="mx-auto mb-4 text-gray-400" />
+                <h3 class="text-heading-4 text-gray-500 mb-2">No products found</h3>
+                <p class="text-body-sm text-gray-400">Add some products to start generating labels</p>
+            </div>
+            @endforelse
         </div>
-    </div>
+    </x-card>
 </div>
 
 <style>
