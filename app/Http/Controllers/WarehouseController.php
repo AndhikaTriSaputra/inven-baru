@@ -7,6 +7,24 @@ use Illuminate\Support\Facades\DB;
 
 class WarehouseController extends Controller
 {
+    private function buildParentOptions(): array
+    {
+        $all = DB::table('warehouses')->select('id','name','parent_id')->get();
+        $byId = $all->keyBy('id');
+        $options = [];
+        foreach ($all as $w) {
+            $path = [];
+            $cur = $w->id; $guard = 0;
+            while ($cur && $guard < 30) {
+                $node = $byId[$cur] ?? null; if (!$node) break;
+                $path[] = $node->name ?? '—';
+                $cur = $node->parent_id; $guard++;
+            }
+            $options[$w->id] = implode(' > ', array_reverse($path));
+        }
+        asort($options);
+        return $options; // [id => "Parent > Child > ..."]
+    }
     public function index()
     {
         $warehouses = DB::table('warehouses')
@@ -20,10 +38,8 @@ class WarehouseController extends Controller
 
     public function create()
     {
-        // daftar parent (opsional): untuk membuat hierarki WO08 > RAK3 > ...
-        $parents = DB::table('warehouses')->select('id','name')->orderBy('name')->get();
-
-        return view('warehouses.create', compact('parents'));
+        $parentOptions = $this->buildParentOptions();
+        return view('warehouses.create', compact('parentOptions'));
     }
 
     public function store(Request $request)
@@ -50,10 +66,8 @@ class WarehouseController extends Controller
     {
         $warehouse = DB::table('warehouses')->where('id',$id)->first();
         abort_unless($warehouse, 404);
-
-        $parents = DB::table('warehouses')->select('id','name')->orderBy('name')->get();
-
-        return view('warehouses.edit', compact('warehouse','parents'));
+        $parentOptions = $this->buildParentOptions();
+        return view('warehouses.edit', compact('warehouse','parentOptions'));
     }
 
     public function update(Request $request, $id)

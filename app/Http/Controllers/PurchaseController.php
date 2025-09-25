@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\Purchase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB; // Added DB facade
+use Illuminate\Support\Facades\Schema as SchemaFacade; // Alias for clarity
 // Prefer raw Dompdf if available; fallback to barryvdh facade if installed
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -19,7 +20,7 @@ class PurchaseController extends Controller
      */
     public function index(Request $request)
     {
-        $query = \DB::table('purchase_details as pd')
+        $query = DB::table('purchase_details as pd')
             ->join('purchases as pu','pu.id','=','pd.purchase_id')
             ->leftJoin('products as p','p.id','=','pd.product_id')
             ->leftJoin('categories as c','c.id','=','p.category_id')
@@ -53,8 +54,8 @@ class PurchaseController extends Controller
         $allPurchases = $query->orderByDesc('pu.date')->get();
 
         // Get options for filter
-        $supplierOptions = \DB::table('providers')->pluck('name', 'id')->toArray();
-        $warehouseOptions = \DB::table('warehouses')->pluck('name', 'id')->toArray();
+        $supplierOptions = DB::table('providers')->pluck('name', 'id')->toArray();
+        $warehouseOptions = DB::table('warehouses')->pluck('name', 'id')->toArray();
 
         // Handle export
         if ($request->has('export')) {
@@ -136,7 +137,7 @@ class PurchaseController extends Controller
 
 public function show($id)
 {
-    $purchase = \DB::table('purchases')->where('id', $id)->first();
+    $purchase = DB::table('purchases')->where('id', $id)->first();
     $details = DB::table('purchase_details as pd')
     ->leftJoin('products as p', 'p.id', '=', 'pd.product_id')
     ->leftJoin('units as u', 'u.id', '=', 'pd.purchase_unit_id')
@@ -149,7 +150,7 @@ public function show($id)
 
 public function print($id)
 {
-$purchase = DB::table('purchases')
+    $purchase = DB::table('purchases')
     ->select('*') // pastikan semua kolom termasuk 'statut'
     ->where('id', $id)
     ->first();
@@ -233,17 +234,61 @@ $purchaseId = DB::table('purchases')->insertGetId([
 
 
 
+// Simpan detail + update stok
 foreach ($validated['items'] as $item) {
     DB::table('purchase_details')->insert([
         'purchase_id' => $purchaseId,
         'product_id' => $item['product_id'],
         'quantity' => $item['quantity'],
         'cost' => $item['cost'],
-        'total' => $item['quantity'] * $item['cost'], // ✅ DITAMBAHKAN
+        'total' => $item['quantity'] * $item['cost'],
         'purchase_unit_id' => $item['purchase_unit_id'] ?? null,
         'created_at' => now(),
         'updated_at' => now(),
     ]);
+
+    // Update stok per warehouse jika tabel tersedia
+    if (SchemaFacade::hasTable('product_warehouse')) {
+        $existing = DB::table('product_warehouse')
+            ->where('product_id', $item['product_id'])
+            ->where('warehouse_id', $validated['warehouse_id'])
+            ->first();
+        if ($existing) {
+            DB::table('product_warehouse')
+                ->where('product_id', $item['product_id'])
+                ->where('warehouse_id', $validated['warehouse_id'])
+                ->update([
+                    'qte' => DB::raw('qte + '.((float)$item['quantity'])),
+                    'updated_at' => now(),
+                ]);
+        } else {
+            DB::table('product_warehouse')->insert([
+                'product_id' => $item['product_id'],
+                'warehouse_id' => $validated['warehouse_id'],
+                'qte' => (float)$item['quantity'],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+    }
+
+    // Optional: update kolom products.stock jika ada
+    if (SchemaFacade::hasColumn('products','stock')) {
+        if (SchemaFacade::hasTable('product_warehouse')) {
+            $sum = DB::table('product_warehouse')
+                ->where('product_id', $item['product_id'])
+                ->sum('qte');
+            DB::table('products')->where('id', $item['product_id'])->update([
+                'stock' => (float)$sum,
+                'updated_at' => now(),
+            ]);
+        } else {
+            DB::table('products')->where('id', $item['product_id'])->update([
+                'stock' => DB::raw('COALESCE(stock,0) + '.((float)$item['quantity'])),
+                'updated_at' => now(),
+            ]);
+        }
+    }
 }
 
 
@@ -373,6 +418,57 @@ if ($request->hasFile('image')) {
 
 
     $purchase->update($data);
+
+    // Jika ada payload items dari edit, update detail dan sinkron stok
+    $items = $request->input('items');
+    if (is_array($items) && !empty($items)) {
+        foreach ($items as $key => $payload) {
+            $detailId = $payload['purchase_detail_id'] ?? $key;
+            $productId = (int)($payload['product_id'] ?? 0);
+            $newQty = (float)($payload['quantity'] ?? 0);
+            if ($productId <= 0) { continue; }
+
+            // Ambil qty lama
+            $oldQty = (float) DB::table('purchase_details')->where('id', $detailId)->value('quantity');
+            $diff = $newQty - $oldQty;
+
+            // Update detail
+            DB::table('purchase_details')->where('id', $detailId)->update([
+                'quantity' => $newQty,
+                'total' => DB::raw('COALESCE(cost,0) * '.($newQty ?: 0)),
+                'updated_at' => now(),
+            ]);
+
+            // Update stok hanya jika ada perubahan
+            if ($diff != 0) {
+                if (SchemaFacade::hasTable('product_warehouse')) {
+                    DB::table('product_warehouse')
+                        ->where('product_id', $productId)
+                        ->where('warehouse_id', $purchase->warehouse_id)
+                        ->update([
+                            'qte' => DB::raw('qte + '.($diff)),
+                            'updated_at' => now(),
+                        ]);
+                }
+                if (SchemaFacade::hasColumn('products','stock')) {
+                    if (SchemaFacade::hasTable('product_warehouse')) {
+                        $sum = DB::table('product_warehouse')
+                            ->where('product_id', $productId)
+                            ->sum('qte');
+                        DB::table('products')->where('id', $productId)->update([
+                            'stock' => (float)$sum,
+                            'updated_at' => now(),
+                        ]);
+                    } else {
+                        DB::table('products')->where('id', $productId)->update([
+                            'stock' => DB::raw('COALESCE(stock,0) + '.($diff)),
+                            'updated_at' => now(),
+                        ]);
+                    }
+                }
+            }
+        }
+    }
 
     return redirect()->route('purchases.index')->with('success', 'Purchase updated successfully');
 }

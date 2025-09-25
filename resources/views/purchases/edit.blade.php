@@ -84,13 +84,15 @@ Edit Purchase
                                 <td class="px-3 py-2">
                                     <div class="font-medium">{{ $row->product_name ?? ('#'.$row->product_id) }}</div>
                                     <div class="text-xs text-gray-500">{{ $row->product_code ?? '' }}</div>
+                                    <input type="hidden" name="items[{{ $row->id }}][purchase_detail_id]" value="{{ $row->id }}">
+                                    <input type="hidden" name="items[{{ $row->id }}][product_id]" value="{{ $row->product_id }}">
                                 </td>
                                 <td class="px-3 py-2">{{ (float)($stocks[$row->product_id] ?? 0) }} {{ $row->unit ?? 'Pcs' }}</td>
                                 <td class="px-3 py-2">
                                     <div class="inline-flex items-center border rounded">
-                                        <button type="button" class="px-2 py-1" onclick="this.nextElementSibling.stepDown()">-</button>
-                                        <input type="number" step="0.0001" min="0" value="{{ (float)$row->quantity }}" class="w-20 px-2 py-1 border-l border-r">
-                                        <button type="button" class="px-2 py-1" onclick="this.previousElementSibling.stepUp()">+</button>
+                                        <button type="button" class="px-2 py-1" onclick="const el=this.nextElementSibling; el.stepDown(); el.dispatchEvent(new Event('input'))">-</button>
+                                        <input name="items[{{ $row->id }}][quantity]" type="number" step="0.0001" min="0" value="{{ (float)$row->quantity }}" class="w-20 px-2 py-1 border-l border-r">
+                                        <button type="button" class="px-2 py-1" onclick="const el=this.previousElementSibling; el.stepUp(); el.dispatchEvent(new Event('input'))">+</button>
                                     </div>
                                 </td>
                                 <td class="px-3 py-2">{{ $row->unit ?? 'Pcs' }}</td>

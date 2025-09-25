@@ -14,10 +14,10 @@
     <label class="block text-sm text-slate-600 mb-1">Parent</label>
     <select name="parent_id" class="w-full border rounded-lg px-3 py-2">
       <option value="">— None —</option>
-      @foreach($parents as $p)
-        <option value="{{ $p->id }}"
-          @selected(old('parent_id', $warehouse->parent_id ?? null) == $p->id)>
-          {{ $p->name }}
+      @foreach(($parentOptions ?? []) as $id => $label)
+        <option value="{{ $id }}"
+          @selected(old('parent_id', $warehouse->parent_id ?? null) == $id)>
+          {{ $label }}
         </option>
       @endforeach
     </select>

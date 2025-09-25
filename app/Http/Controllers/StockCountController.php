@@ -9,16 +9,24 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class StockCountController extends Controller
 {
+    private function stockCountTable(): string
+    {
+        if (Schema::hasTable('count_stock')) { return 'count_stock'; }
+        if (Schema::hasTable('stock_counts')) { return 'stock_counts'; }
+        return '';
+    }
     /**
      * Display stock counts list
      */
     public function index(Request $request): View
     {
-        // If stock_counts table doesn't exist yet, return empty paginator gracefully
-        if (!Schema::hasTable('stock_counts')) {
+        // Support both table names
+        $table = $this->stockCountTable();
+        if ($table === '') {
             $page = (int) $request->query('page', 1);
             $stockCounts = new LengthAwarePaginator(collect(), 0, 10, $page, [
                 'path' => $request->url(),
@@ -32,9 +40,9 @@ class StockCountController extends Controller
             return view('products.stock-count', compact('stockCounts', 'warehouses'));
         }
 
-        $query = DB::table('stock_counts as sc')
+        $query = DB::table($table . ' as sc')
             ->leftJoin('warehouses as w', 'w.id', '=', 'sc.warehouse_id')
-            ->select('sc.*', 'w.name as warehouse_name')
+            ->select('sc.*', 'w.name as warehouse_name', DB::raw('sc.file_stock as file'))
             ->orderByDesc('sc.created_at');
 
         // Apply search filter
@@ -42,17 +50,17 @@ class StockCountController extends Controller
             $search = $request->query('search');
             $query->where(function($q) use ($search) {
                 $q->where('w.name', 'like', '%' . $search . '%')
-                  ->orWhere('sc.status', 'like', '%' . $search . '%')
                   ->orWhere('sc.date', 'like', '%' . $search . '%');
+                if (Schema::hasColumn($this->stockCountTable() ?: 'count_stock', 'status')) {
+                    $q->orWhere('sc.status', 'like', '%' . $search . '%');
+                }
             });
         }
 
         $stockCounts = $query->paginate(10)->withQueryString();
         
         // Get warehouses for the create modal
-        $warehouses = Schema::hasTable('warehouses')
-            ? DB::table('warehouses')->select('id', 'name')->get()
-            : collect();
+        $warehouses = Schema::hasTable('warehouses') ? DB::table('warehouses')->select('id', 'name')->get() : collect();
 
         return view('products.stock-count', compact('stockCounts', 'warehouses'));
     }
@@ -74,15 +82,73 @@ class StockCountController extends Controller
         }
 
         try {
-            $stockCountId = DB::table('stock_counts')->insertGetId([
+            $data = [
                 'date' => $request->date,
                 'warehouse_id' => $request->warehouse_id,
-                'status' => 'pending',
                 'created_at' => now(),
-                'updated_at' => now()
-            ]);
+                'updated_at' => now(),
+            ];
+            $table = $this->stockCountTable() ?: 'count_stock';
+            if (Schema::hasColumn($table, 'user_id')) {
+                $data['user_id'] = Auth::id();
+            }
+            // Ensure placeholder for NOT NULL file_stock columns to avoid MySQL default error
+            if (Schema::hasColumn($table, 'file_stock')) {
+                $data['file_stock'] = '';
+            }
+            if (Schema::hasColumn($table, 'status')) {
+                $data['status'] = 'pending';
+            }
+            $stockCountId = DB::table($table)->insertGetId($data);
 
-            return redirect()->route('stock-count.show', $stockCountId)
+            // Auto-create an initial CSV file so "Download" is always available
+            if (Schema::hasColumn($table, 'file_stock')) {
+                $uploadsPath = public_path('uploads');
+                if (!is_dir($uploadsPath)) {
+                    @mkdir($uploadsPath, 0755, true);
+                }
+
+                $filename = 'stock_count_'.$stockCountId.'_'.date('Ymd_His').'.csv';
+                $filepath = $uploadsPath . DIRECTORY_SEPARATOR . $filename;
+
+                $fh = @fopen($filepath, 'w');
+                if ($fh) {
+                    // Optional UTF-8 BOM
+                    fprintf($fh, chr(0xEF).chr(0xBB).chr(0xBF));
+                    // Headers for empty template
+                    fputcsv($fh, ['Stock Count ID','Date','Warehouse ID','Product Code','Product Name','Expected Qty','Counted Qty','Difference']);
+                    fputcsv($fh, [$stockCountId, $request->date, $request->warehouse_id, '', '', 0, 0, 0]);
+                    fclose($fh);
+
+                    DB::table($table)->where('id', $stockCountId)->update([
+                        'file_stock' => $filename,
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+
+            // Seed stock_count_items from current warehouse inventory
+            if (Schema::hasTable('stock_count_items') && Schema::hasTable('product_warehouse')) {
+                $inventory = DB::table('product_warehouse as pw')
+                    ->leftJoin('products as p','p.id','=','pw.product_id')
+                    ->leftJoin('units as u','u.id','=','p.unit_id')
+                    ->select('pw.product_id','pw.qte as expected_qty')
+                    ->where('pw.warehouse_id', $request->warehouse_id)
+                    ->get();
+                foreach ($inventory as $row) {
+                    DB::table('stock_count_items')->insert([
+                        'stock_count_id' => $stockCountId,
+                        'product_id' => $row->product_id,
+                        'expected_qty' => (float)($row->expected_qty ?? 0),
+                        'counted_qty' => 0,
+                        'difference' => (float)($row->expected_qty ?? 0),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+
+            return redirect()->route('stock-count.index')
                 ->with('success', 'Stock count created successfully!');
         } catch (\Exception $e) {
             return redirect()->back()
@@ -96,7 +162,8 @@ class StockCountController extends Controller
      */
     public function show($id): View
     {
-        $stockCount = DB::table('stock_counts as sc')
+        $table = $this->stockCountTable() ?: 'count_stock';
+        $stockCount = DB::table($table . ' as sc')
             ->leftJoin('warehouses as w', 'w.id', '=', 'sc.warehouse_id')
             ->select('sc.*', 'w.name as warehouse_name')
             ->where('sc.id', $id)
@@ -126,7 +193,8 @@ class StockCountController extends Controller
      */
     public function edit($id): View
     {
-        $stockCount = DB::table('stock_counts as sc')
+        $table = $this->stockCountTable() ?: 'count_stock';
+        $stockCount = DB::table($table . ' as sc')
             ->leftJoin('warehouses as w', 'w.id', '=', 'sc.warehouse_id')
             ->select('sc.*', 'w.name as warehouse_name')
             ->where('sc.id', $id)
@@ -160,7 +228,8 @@ class StockCountController extends Controller
         }
 
         try {
-            DB::table('stock_counts')
+            $table = $this->stockCountTable() ?: 'stock_counts';
+            DB::table($table)
                 ->where('id', $id)
                 ->update([
                     'date' => $request->date,

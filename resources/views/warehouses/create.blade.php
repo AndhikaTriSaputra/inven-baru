@@ -78,9 +78,9 @@
                             <label class="form-label">Parent Warehouse</label>
                             <select name="parent_id" class="form-select">
                                 <option value="">— None —</option>
-                                @foreach($parents as $parent)
-                                    <option value="{{ $parent->id }}" {{ old('parent_id') == $parent->id ? 'selected' : '' }}>
-                                        {{ $parent->name }}
+                                @foreach(($parentOptions ?? []) as $id => $label)
+                                    <option value="{{ $id }}" {{ old('parent_id') == $id ? 'selected' : '' }}>
+                                        {{ $label }}
                                     </option>
                                 @endforeach
                             </select>

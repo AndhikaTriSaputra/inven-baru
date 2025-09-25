@@ -39,7 +39,7 @@
                 Filter
             </x-button>
             <x-button onclick="openCountModal()" variant="primary" icon="plus">
-                New Stock Count
+                Count
             </x-button>
         </div>
     </div>
@@ -54,9 +54,7 @@
                     </th>
                     <th class="px-3 py-3 text-left text-gray-600 font-semibold">Date</th>
                     <th class="px-3 py-3 text-left text-gray-600 font-semibold">Warehouse</th>
-                    <th class="px-3 py-3 text-left text-gray-600 font-semibold">Status</th>
-                    <th class="px-3 py-3 text-left text-gray-600 font-semibold">Created At</th>
-                    <th class="px-3 py-3 text-left text-gray-600 font-semibold">Action</th>
+                    <th class="px-3 py-3 text-left text-gray-600 font-semibold">file</th>
                         </tr>
                     </thead>
             <tbody id="tableBody">
@@ -68,54 +66,20 @@
                     <td class="px-3 py-3 text-gray-700">{{ \Carbon\Carbon::parse($stockCount->date)->format('M d, Y') }}</td>
                     <td class="px-3 py-3 text-gray-700 font-medium">{{ $stockCount->warehouse_name ?? 'Unknown Warehouse' }}</td>
                     <td class="px-3 py-3">
-                        @if($stockCount->status === 'pending')
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
-                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
-                                </svg>
-                                Pending
-                            </span>
-                        @elseif($stockCount->status === 'in_progress')
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
-                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
-                                </svg>
-                                In Progress
-                            </span>
-                        @elseif($stockCount->status === 'completed')
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                                </svg>
-                                Completed
-                            </span>
+                        @php
+                            $fileVal = $stockCount->file ?? ($stockCount->file_stock ?? null);
+                            $href = $fileVal ? (\Illuminate\Support\Str::startsWith($fileVal, ['http://','https://','/']) ? $fileVal : asset('uploads/'.$fileVal)) : null;
+                        @endphp
+                        @if($href)
+                            <a class="text-violet-600 hover:underline" href="{{ $href }}" download>Download</a>
                         @else
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
-                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                                </svg>
-                                Error
-                                </span>
+                            <span class="text-gray-400">-</span>
                         @endif
-                            </td>
-                    <td class="px-3 py-3 text-gray-500">{{ \Carbon\Carbon::parse($stockCount->created_at)->format('M d, Y H:i') }}</td>
-                    <td class="px-3 py-3">
-                        <div class="flex items-center gap-2 justify-end">
-                            <a href="{{ route('stock-count.show', $stockCount->id) }}" class="w-8 h-8 rounded-full border border-blue-300 text-blue-600 hover:bg-blue-50 grid place-items-center" title="View">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-                            </a>
-                            <a href="{{ route('stock-count.edit', $stockCount->id) }}" class="w-8 h-8 rounded-full border border-emerald-300 text-emerald-600 hover:bg-emerald-50 grid place-items-center" title="Edit">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 113 3L7 19l-4 1 1-4 12.5-12.5Z"/></svg>
-                            </a>
-                            <button onclick="deleteStockCount({{ $stockCount->id }})" class="w-8 h-8 rounded-full border border-rose-300 text-rose-600 hover:bg-rose-50 grid place-items-center" title="Delete">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
-                                </button>
-                        </div>
-                            </td>
+                    </td>
                         </tr>
                         @empty
                         <tr>
-                    <td colspan="6" class="px-4 py-8 text-center text-gray-500">No stock counts found. Create your first count by clicking the "New Count" button above.</td>
+                    <td colspan="4" class="px-4 py-8 text-center text-gray-500">No stock counts found. Click "Count" to create.</td>
                         </tr>
                         @endforelse
                     </tbody>

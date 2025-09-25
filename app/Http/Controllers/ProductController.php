@@ -19,6 +19,33 @@ use App\Models\Product;
 
 class ProductController extends Controller
 {
+    private function buildWarehousePaths(array $ids): array
+    {
+        if (empty($ids)) return [];
+        $all = DB::table('warehouses')->select('id','name','parent_id')->get()->keyBy('id');
+        $res = [];
+        foreach ($ids as $wid) {
+            $path = []; $cur = $wid; $guard = 0;
+            while ($cur && $guard < 30) {
+                $node = $all[$cur] ?? null; if (!$node) break;
+                $path[] = $node->name ?? '—';
+                $cur = $node->parent_id; $guard++;
+            }
+            // Desired order: child first, then ROOT (Default Warehouse), then the remaining parents
+            // Example from [child, p1, p2, ..., root] => child > root > p_{n-1} > ... > p1
+            if (count($path) >= 2) {
+                $child = $path[0];
+                $root = $path[count($path)-1];
+                $middle = array_slice($path, 1, count($path)-2);
+                $middle = array_reverse($middle);
+                $ordered = array_merge([$child, $root], $middle);
+                $res[$wid] = implode(' > ', $ordered);
+            } else {
+                $res[$wid] = implode(' > ', $path);
+            }
+        }
+        return $res;
+    }
     private function buildProductsQuery(Request $request, $showAll = false)
     {
         $q = DB::table('products as p')
@@ -249,6 +276,9 @@ public function create()
                             ? DB::table('tags')->select('id','name')->get()
                             : collect(),
     'units'          => Unit::all(),
+        'warehouses'     => Schema::hasTable('warehouses')
+                            ? DB::table('warehouses')->select('id','name')->orderBy('name')->get()
+                            : collect(),
         'barcode_types'  => ['Code 128', 'EAN13', 'UPC', 'QR'],
         'types'          => ['Standard Product', 'Combo Product', 'Service'],
     ]);
@@ -379,6 +409,25 @@ public function create()
         
         $product = $query->first();
         abort_if(!$product, 404);
+
+        // Load per-warehouse inventory with hierarchical warehouse path
+        if (DB::getSchemaBuilder()->hasTable('product_warehouse')) {
+            $rows = DB::table('product_warehouse as pw')
+                ->leftJoin('warehouses as w', 'w.id', '=', 'pw.warehouse_id')
+                ->where('pw.product_id', $id)
+                ->select('pw.warehouse_id', DB::raw('IFNULL(w.name, CONCAT("Warehouse #", pw.warehouse_id)) as name'), 'pw.qte as quantity')
+                ->orderBy('name')
+                ->get();
+
+            $paths = $this->buildWarehousePaths($rows->pluck('warehouse_id')->filter()->unique()->values()->all());
+            $product->warehouse_inventory = $rows->map(function($r) use ($paths){
+                $label = $paths[$r->warehouse_id] ?? $r->name;
+                return [ 'warehouse' => $label, 'quantity' => (float)$r->quantity ];
+            })->toArray();
+        } else {
+            $product->warehouse_inventory = [];
+        }
+
         return view('products.show', compact('product'));
     }
 

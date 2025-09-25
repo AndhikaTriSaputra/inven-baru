@@ -123,6 +123,23 @@
                             </div>
 
                             <div>
+                                <label class="form-label">
+                                    Warehouse <span class="text-red-500">*</span>
+                                </label>
+                                <select name="warehouse_id" class="form-select" {{ (isset($warehouses) && $warehouses->count()) ? 'required' : '' }}>
+                                    <option value="">Choose warehouse…</option>
+                                    @foreach (($warehouses ?? collect()) as $warehouse)
+                                        <option value="{{ $warehouse->id }}" {{ old('warehouse_id') == $warehouse->id ? 'selected' : '' }}>
+                                            {{ $warehouse->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('warehouse_id')
+                                    <div class="form-error">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div>
                                 <label class="form-label">Brand</label>
                                 <select name="brand_id" class="form-select">
                                     <option value="">Choose brand…</option>
@@ -212,7 +229,7 @@
                                 <select name="type" class="form-select" required>
                                     <option value="standard" {{ old('type', 'standard') == 'standard' ? 'selected' : '' }}>
                                         Standard Product</option>
-                                    <option value="service" {{ old('type') == 'service' ? 'selected' : '' }}>Service
+                                    <option value="Non Product`" {{ old('type') == 'Non Product' ? 'selected' : '' }}>Non Product
                                     </option>
                                 </select>
                                 @error('type')
